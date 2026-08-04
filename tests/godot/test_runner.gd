@@ -8,9 +8,13 @@ const SUITES := [
 
 
 func _init() -> void:
+    print("HEARTHWILD_TEST_RUNNER_START")
     var failures: Array[String] = []
-    for suite in SUITES:
-        failures.append_array(suite.run())
+    for index in SUITES.size():
+        print("HEARTHWILD_SUITE_START:%d" % index)
+        failures.append_array(SUITES[index].run())
+        print("HEARTHWILD_SUITE_DONE:%d" % index)
     for failure in failures:
         push_error(failure)
+    print("HEARTHWILD_TEST_RUNNER_QUIT:%d" % failures.size())
     quit(0 if failures.is_empty() else 1)
