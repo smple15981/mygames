@@ -45,6 +45,9 @@ jobs:
             exit 1
           fi
 
+      - name: Run headless gameplay tests
+        run: ./Godot_v4.6.3-stable_linux.x86_64 --headless --path . --script res://tests/godot/test_runner.gd
+
       - name: Smoke-run the main scene
         shell: bash
         run: |

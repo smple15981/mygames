@@ -109,6 +109,12 @@ class ProjectValidatorTests(unittest.TestCase):
         self.assertNotIn("submodules: recursive", workflow)
         self.assertNotIn("Upload pinned runtime art", workflow)
 
+    def test_ci_runs_headless_gameplay_tests(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        workflow = (root / ".github/workflows/validate.yml").read_text(encoding="utf-8")
+        self.assertIn("--script res://tests/godot/test_runner.gd", workflow)
+        self.assertTrue((root / "tests/godot/test_runner.gd").is_file())
+
     def test_runtime_loader_does_not_depend_on_vendor_project(self) -> None:
         repository_root = Path(__file__).resolve().parents[1]
         library = (repository_root / "scripts/assets/open_asset_library.gd").read_text(encoding="utf-8")

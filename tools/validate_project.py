@@ -17,6 +17,9 @@ REQUIRED_FILES = (
     "scripts/world/prototype_world.gd",
     "scripts/world/visual_critter.gd",
     "scripts/world/water_surface.gd",
+    "tests/godot/test_assert.gd",
+    "tests/godot/test_runner.gd",
+    "tests/godot/suites/test_action_protocol.gd",
     "assets/original/player/player.svg",
     "assets/original/player/shadow.svg",
     "assets/original/world/house.svg",
@@ -196,6 +199,8 @@ def validate_repository(root: Path) -> list[str]:
             errors.append("validation workflow must prove a normal checkout works without submodules")
         if "Upload pinned runtime art" in workflow_text:
             errors.append("validation workflow must not inject runtime art before testing")
+        if "--script res://tests/godot/test_runner.gd" not in workflow_text:
+            errors.append("validation workflow must run headless gameplay tests")
 
     scan_paths = [project_path]
     if (root / "scenes").is_dir():
