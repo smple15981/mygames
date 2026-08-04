@@ -196,6 +196,43 @@ class ProjectValidatorTests(unittest.TestCase):
         ):
             self.assertIn(phrase, layout)
 
+    def test_world_enhancement_final_contract(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        for relative in (
+            "scripts/ui/minimap.gd",
+            "scenes/ui/minimap.tscn",
+            "tests/godot/suites/test_minimap.gd",
+        ):
+            self.assertIn(relative, WORLD_ENHANCEMENT_FILES)
+
+        config = (root / "scripts/world/world_layout_config.gd").read_text(encoding="utf-8")
+        camera = (root / "scripts/player/camera_rig.gd").read_text(encoding="utf-8")
+        router = (root / "scripts/input/game_input_router.gd").read_text(encoding="utf-8")
+        factory = (root / "scripts/world/world_prop_factory.gd").read_text(encoding="utf-8")
+        world_scene = (root / "scenes/world/prototype_world.tscn").read_text(encoding="utf-8")
+
+        for token in ("Vector2i(96, 64)", "Vector2i(32, 32)"):
+            self.assertIn(token, config)
+        for token in (
+            "MIN_ZOOM := 0.75",
+            "MAX_ZOOM := 1.50",
+            "ZOOM_STEP := 0.125",
+        ):
+            self.assertIn(token, camera)
+        for token in ("func _input", "KEY_TAB", "ctrl_pressed", "change_zoom_steps"):
+            self.assertIn(token, router)
+        for token in ("instance_id", '"%s:%d"'):
+            self.assertIn(token, factory)
+        for token in (
+            "WorldCollisionRegistry",
+            "WorldLayout",
+            "PauseCoordinator",
+            "GameInputRouter",
+            "scenes/ui/stats_hud.tscn",
+            "scenes/ui/minimap.tscn",
+        ):
+            self.assertIn(token, world_scene)
+
     def test_readme_documents_bundled_open_art(self) -> None:
         repository_root = Path(__file__).resolve().parents[1]
         readme = (repository_root / "README.md").read_text(encoding="utf-8")
