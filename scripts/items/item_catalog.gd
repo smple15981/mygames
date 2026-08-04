@@ -22,6 +22,13 @@ var _items: Dictionary = {}
 
 
 func _ready() -> void:
+    _ensure_loaded()
+
+
+func _ensure_loaded() -> void:
+    if _items.size() == ITEM_PATHS.size():
+        return
+    _items.clear()
     for item_id in ITEM_PATHS:
         var definition := load(ITEM_PATHS[item_id]) as ItemDefinition
         if definition == null:
@@ -31,14 +38,17 @@ func _ready() -> void:
 
 
 func get_item(item_id: StringName) -> ItemDefinition:
+    _ensure_loaded()
     return _items.get(item_id) as ItemDefinition
 
 
 func has_item(item_id: StringName) -> bool:
+    _ensure_loaded()
     return _items.has(item_id)
 
 
 func all_items() -> Array[ItemDefinition]:
+    _ensure_loaded()
     var values: Array[ItemDefinition] = []
     for definition in _items.values():
         values.append(definition as ItemDefinition)
