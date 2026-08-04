@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/prototype_world.gd" id="1_world_script"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_player"]
