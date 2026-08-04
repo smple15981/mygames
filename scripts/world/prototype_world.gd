@@ -12,6 +12,10 @@ const VisualCritterScript := preload("res://scripts/world/visual_critter.gd")
 @onready var camera_rig: CameraRig = $Entities/Player/Camera2D
 @onready var hotbar_ui: HotbarUI = $HUD/HotbarUI
 @onready var inventory_ui: InventoryUI = $HUD/InventoryUI
+@onready var stats_hud: StatsHUD = $HUD/StatsHUD
+@onready var minimap: MiniMap = $HUD/MiniMapFrame/Margin/MiniMap
+@onready var hint_panel: Control = $HUD/HintPanel
+@onready var hint_timer: Timer = $HintTimer
 
 
 func _ready() -> void:
@@ -21,6 +25,7 @@ func _ready() -> void:
     camera_rig.configure_world(world_layout.world_rect())
     _bind_player_ui()
     _bind_global_input()
+    _bind_hint_timer()
     _spawn_critter()
 
     var route_errors := world_layout.validate_required_routes()
@@ -29,9 +34,21 @@ func _ready() -> void:
 
 
 func _bind_player_ui() -> void:
-    var player_inventory: InventoryModel = player.get_node("Inventory") as InventoryModel
+    var player_inventory := player.get_node("Inventory") as InventoryModel
+    var player_stats := player.get_node("PlayerStats") as PlayerStats
     hotbar_ui.bind(player_inventory)
     inventory_ui.bind(player_inventory)
+    stats_hud.bind(player_stats)
+    minimap.bind(world_layout.config, player)
+
+    var marker_entries := world_layout.marker_entries()
+    for marker_id in marker_entries:
+        var marker := marker_entries[marker_id] as Dictionary
+        minimap.register_marker(
+            StringName(marker_id),
+            int(marker.get("category", 0)),
+            marker.get("position", Vector2.ZERO) as Vector2
+        )
 
 
 func _bind_global_input() -> void:
@@ -47,9 +64,20 @@ func _bind_global_input() -> void:
     _on_inventory_opened(inventory_ui.is_open())
 
 
+func _bind_hint_timer() -> void:
+    if not hint_timer.timeout.is_connected(_on_hint_timeout):
+        hint_timer.timeout.connect(_on_hint_timeout)
+
+
 func _on_inventory_opened(opened: bool) -> void:
     player.set_gameplay_input_blocked(opened)
     hotbar_ui.set_modal_dimmed(opened)
+    stats_hud.set_modal_dimmed(opened)
+    minimap.set_modal_dimmed(opened)
+
+
+func _on_hint_timeout() -> void:
+    hint_panel.hide()
 
 
 func _spawn_critter() -> void:
