@@ -6,10 +6,10 @@ extends CharacterBody2D
 
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var shadow: Sprite2D = $Shadow
-@onready var inventory: InventoryModel = $Inventory
 @onready var item_user: ItemUser = $ItemUser
 
 var facing: int = MovementMath.Facing.SOUTH
+var gameplay_input_blocked := false
 var _animation_time := 0.0
 var _using_open_sheet := false
 
@@ -19,7 +19,11 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-    var raw_input := Input.get_vector("move_left", "move_right", "move_up", "move_down")
+    var raw_input := (
+        Vector2.ZERO
+        if gameplay_input_blocked
+        else Input.get_vector("move_left", "move_right", "move_up", "move_down")
+    )
     var direction := MovementMath.normalized_input(raw_input)
 
     velocity = direction * move_speed
@@ -31,29 +35,17 @@ func _physics_process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+    if gameplay_input_blocked:
+        return
     if event.is_action_pressed("attack"):
         item_user.request_use(aim_direction())
         get_viewport().set_input_as_handled()
-        return
 
-    for index in inventory.quickbar_size:
-        if event.is_action_pressed("quick_slot_%d" % (index + 1)):
-            inventory.set_selected_slot(index)
-            get_viewport().set_input_as_handled()
-            return
 
-    if event is InputEventMouseButton and event.pressed:
-        var mouse_event := event as InputEventMouseButton
-        if mouse_event.button_index == MOUSE_BUTTON_WHEEL_UP:
-            inventory.set_selected_slot(
-                posmod(inventory.selected_index - 1, inventory.quickbar_size)
-            )
-            get_viewport().set_input_as_handled()
-        elif mouse_event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-            inventory.set_selected_slot(
-                posmod(inventory.selected_index + 1, inventory.quickbar_size)
-            )
-            get_viewport().set_input_as_handled()
+func set_gameplay_input_blocked(blocked: bool) -> void:
+    gameplay_input_blocked = blocked
+    if blocked:
+        velocity = Vector2.ZERO
 
 
 func aim_direction() -> Vector2:
