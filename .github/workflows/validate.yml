@@ -39,3 +39,6 @@ jobs:
 
       - name: Import and parse Godot project
         run: ./Godot_v4.6.3-stable_linux.x86_64 --headless --path . --import
+
+      - name: Smoke-run the main scene
+        run: ./Godot_v4.6.3-stable_linux.x86_64 --headless --path . --quit-after 8
