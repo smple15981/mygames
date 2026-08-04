@@ -6,6 +6,8 @@ extends CharacterBody2D
 
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var shadow: Sprite2D = $Shadow
+@onready var inventory: InventoryModel = $Inventory
+@onready var item_user: ItemUser = $ItemUser
 
 var facing: int = MovementMath.Facing.SOUTH
 var _animation_time := 0.0
@@ -26,6 +28,38 @@ func _physics_process(delta: float) -> void:
     var moving := not direction.is_zero_approx()
     facing = MovementMath.facing_index(direction, facing)
     _apply_visual_state(moving, delta)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+    if event.is_action_pressed("attack"):
+        item_user.request_use(aim_direction())
+        get_viewport().set_input_as_handled()
+        return
+
+    for index in inventory.quickbar_size:
+        if event.is_action_pressed("quick_slot_%d" % (index + 1)):
+            inventory.set_selected_slot(index)
+            get_viewport().set_input_as_handled()
+            return
+
+    if event is InputEventMouseButton and event.pressed:
+        var mouse_event := event as InputEventMouseButton
+        if mouse_event.button_index == MOUSE_BUTTON_WHEEL_UP:
+            inventory.set_selected_slot(
+                posmod(inventory.selected_index - 1, inventory.quickbar_size)
+            )
+            get_viewport().set_input_as_handled()
+        elif mouse_event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+            inventory.set_selected_slot(
+                posmod(inventory.selected_index + 1, inventory.quickbar_size)
+            )
+            get_viewport().set_input_as_handled()
+
+
+func aim_direction() -> Vector2:
+    var mouse_world := get_global_mouse_position()
+    var direction := global_position.direction_to(mouse_world)
+    return direction if not direction.is_zero_approx() else Vector2.DOWN
 
 
 func _configure_visuals() -> void:

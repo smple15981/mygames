@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/item_definition.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/original/items/moon_dew_seed.svg" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"moon_dew_seed"
+display_name = "月露萝卜种子"
+icon = ExtResource("2")
+item_type = 3
+max_stack = 99
+use_cooldown = 0.35
+use_range = 48.0
+key_item = true

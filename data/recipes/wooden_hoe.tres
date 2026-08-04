@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RecipeDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/crafting/recipe_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"wooden_hoe"
+display_name = "制作木锄"
+station = 1
+ingredients = {"wood": 5, "stone": 2, "slime_gel": 1}
+output_item_id = &"wooden_hoe"
+output_quantity = 1
+key_recipe = true

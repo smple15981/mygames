@@ -17,6 +17,9 @@ REQUIRED_FILES = (
     "scripts/world/prototype_world.gd",
     "scripts/world/visual_critter.gd",
     "scripts/world/water_surface.gd",
+    "tests/godot/test_assert.gd",
+    "tests/godot/test_runner.gd",
+    "tests/godot/suites/test_action_protocol.gd",
     "assets/original/player/player.svg",
     "assets/original/player/shadow.svg",
     "assets/original/world/house.svg",
@@ -24,6 +27,46 @@ REQUIRED_FILES = (
     "assets/original/world/rock.svg",
     "THIRD_PARTY_NOTICES.md",
     "README.md",
+)
+
+GAMEPLAY_FOUNDATION_FILES = (
+    "scripts/actions/action_request.gd",
+    "scripts/actions/action_result.gd",
+    "scripts/items/item_definition.gd",
+    "scripts/items/item_catalog.gd",
+    "scripts/inventory/inventory_slot.gd",
+    "scripts/inventory/inventory_model.gd",
+    "scripts/crafting/recipe_definition.gd",
+    "scripts/crafting/crafting_result.gd",
+    "scripts/crafting/crafting_service.gd",
+    "scripts/player/item_user.gd",
+    "scripts/ui/hotbar_ui.gd",
+    "scripts/ui/inventory_ui.gd",
+    "scenes/ui/hotbar_ui.tscn",
+    "scenes/ui/inventory_ui.tscn",
+    "tests/godot/suites/test_inventory_model.gd",
+    "tests/godot/suites/test_crafting_service.gd",
+    "data/items/branch.tres",
+    "data/items/loose_stone.tres",
+    "data/items/wood.tres",
+    "data/items/stone.tres",
+    "data/items/grass.tres",
+    "data/items/slime_gel.tres",
+    "data/items/stone_axe.tres",
+    "data/items/stone_pickaxe.tres",
+    "data/items/wooden_sword.tres",
+    "data/items/wooden_hoe.tres",
+    "data/items/worn_watering_can.tres",
+    "data/items/moon_dew_seed.tres",
+    "data/items/moon_dew_radish.tres",
+    "data/items/torch.tres",
+    "data/items/simple_bandage.tres",
+    "data/recipes/stone_axe.tres",
+    "data/recipes/stone_pickaxe.tres",
+    "data/recipes/wooden_sword.tres",
+    "data/recipes/torch.tres",
+    "data/recipes/wooden_hoe.tres",
+    "data/recipes/simple_bandage.tres",
 )
 
 OPEN_ASSET_FILES = (
@@ -65,7 +108,7 @@ def validate_repository(root: Path) -> list[str]:
     root = root.resolve()
     errors: list[str] = []
 
-    for relative in REQUIRED_FILES:
+    for relative in REQUIRED_FILES + GAMEPLAY_FOUNDATION_FILES:
         if not (root / relative).is_file():
             errors.append(f"missing required file: {relative}")
 
@@ -87,9 +130,13 @@ def validate_repository(root: Path) -> list[str]:
                 "textures/canvas_textures/default_texture_filter=0",
                 "2d/snap/snap_2d_transforms_to_pixel=true",
                 "2d/snap/snap_2d_vertices_to_pixel=true",
+                "inventory={",
+                "quick_slot_5={",
             ),
             "project.godot",
         )
+        if 'ItemCatalog="*res://scripts/items/item_catalog.gd"' in project_text:
+            errors.append("project.godot must not expose ItemCatalog only as an autoload")
 
     player_scene = root / "scenes/player/player.tscn"
     if player_scene.is_file():
@@ -99,7 +146,15 @@ def validate_repository(root: Path) -> list[str]:
         _require_tokens(
             errors,
             player_text,
-            ('type="Sprite2D"', "hframes = 4", "vframes = 7", "Camera2D"),
+            (
+                'type="Sprite2D"',
+                "hframes = 4",
+                "vframes = 7",
+                "Camera2D",
+                "scripts/inventory/inventory_model.gd",
+                "scripts/player/item_user.gd",
+                'NodePath("../Inventory")',
+            ),
             "player scene",
         )
 
@@ -115,8 +170,28 @@ def validate_repository(root: Path) -> list[str]:
                 "WaterSurface",
                 "PointLight2D",
                 "CanvasLayer",
+                "scenes/ui/hotbar_ui.tscn",
+                "scenes/ui/inventory_ui.tscn",
             ),
             "world scene",
+        )
+
+    hotbar_scene = root / "scenes/ui/hotbar_ui.tscn"
+    if hotbar_scene.is_file():
+        _require_tokens(
+            errors,
+            _read_text(hotbar_scene),
+            ("HotbarUI", "HBoxContainer"),
+            "hotbar scene",
+        )
+
+    inventory_scene = root / "scenes/ui/inventory_ui.tscn"
+    if inventory_scene.is_file():
+        _require_tokens(
+            errors,
+            _read_text(inventory_scene),
+            ("GridContainer", "columns = 5", "RecipeList", "CraftButton"),
+            "inventory scene",
         )
 
     controller_path = root / "scripts/player/player_controller.gd"
@@ -128,11 +203,28 @@ def validate_repository(root: Path) -> list[str]:
                 "extends CharacterBody2D",
                 "OpenAssetLibrary.PLAYER_SHEET",
                 "OpenAssetLibrary.SHADOW_TEXTURE",
+                "func aim_direction",
+                "item_user.request_use",
                 "func _direction_column",
                 "func _animation_row",
                 "frame_coords",
             ),
             "player_controller.gd",
+        )
+
+    catalog_path = root / "scripts/items/item_catalog.gd"
+    if catalog_path.is_file():
+        _require_tokens(
+            errors,
+            _read_text(catalog_path),
+            (
+                "class_name ItemCatalog",
+                "static func get_item",
+                "static func has_item",
+                "static func all_items",
+                'res://data/items/wooden_sword.tres',
+            ),
+            "item_catalog.gd",
         )
 
     library_path = root / "scripts/assets/open_asset_library.gd"
@@ -185,6 +277,8 @@ def validate_repository(root: Path) -> list[str]:
                 "ground.set_cell",
                 "_build_fallback_props",
                 "assets/original/world/house.svg",
+                "hotbar_ui.bind(player_inventory)",
+                "inventory_ui.bind(player_inventory)",
             ),
             "prototype_world.gd",
         )
@@ -196,6 +290,8 @@ def validate_repository(root: Path) -> list[str]:
             errors.append("validation workflow must prove a normal checkout works without submodules")
         if "Upload pinned runtime art" in workflow_text:
             errors.append("validation workflow must not inject runtime art before testing")
+        if "--script res://tests/godot/test_runner.gd" not in workflow_text:
+            errors.append("validation workflow must run headless gameplay tests")
 
     scan_paths = [project_path]
     if (root / "scenes").is_dir():
@@ -247,7 +343,7 @@ def main() -> int:
         for error in errors:
             print(f"ERROR: {error}")
         return 1
-    print("Hearthwild bundled-open-art 2D project validation passed.")
+    print("Hearthwild gameplay-foundation 2D project validation passed.")
     return 0
 
 

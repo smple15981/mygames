@@ -45,6 +45,23 @@ jobs:
             exit 1
           fi
 
+      - name: Run headless gameplay tests
+        shell: bash
+        timeout-minutes: 2
+        run: |
+          set -o pipefail
+          timeout 60s ./Godot_v4.6.3-stable_linux.x86_64 --headless --path . --script res://tests/godot/test_runner.gd 2>&1 | tee godot-tests.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -eq 124 ]; then
+            echo "Headless gameplay tests timed out."
+            exit 1
+          fi
+          if grep -E "SCRIPT ERROR:|^ERROR:" godot-tests.log; then
+            echo "Headless gameplay tests reported script/runtime errors."
+            exit 1
+          fi
+          exit "$status"
+
       - name: Smoke-run the main scene
         shell: bash
         run: |

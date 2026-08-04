@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RecipeDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/crafting/recipe_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"simple_bandage"
+display_name = "制作简易绷带"
+station = 1
+ingredients = {"grass": 3, "slime_gel": 1}
+output_item_id = &"simple_bandage"
+output_quantity = 1

@@ -1,8 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player_controller.gd" id="1_controller"]
 [ext_resource type="Texture2D" path="res://assets/original/player/player.svg" id="2_player"]
 [ext_resource type="Texture2D" path="res://assets/original/player/shadow.svg" id="3_shadow"]
+[ext_resource type="Script" path="res://scripts/inventory/inventory_model.gd" id="4_inventory"]
+[ext_resource type="Script" path="res://scripts/player/item_user.gd" id="5_item_user"]
 
 [sub_resource type="RectangleShape2D" id="Shape_player"]
 size = Vector2(16, 12)
@@ -26,6 +28,13 @@ vframes = 7
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, 11)
 shape = SubResource("Shape_player")
+
+[node name="Inventory" type="Node" parent="."]
+script = ExtResource("4_inventory")
+
+[node name="ItemUser" type="Node" parent="."]
+script = ExtResource("5_item_user")
+inventory_path = NodePath("../Inventory")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position_smoothing_enabled = true
