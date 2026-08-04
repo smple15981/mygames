@@ -38,7 +38,21 @@ jobs:
           chmod +x Godot_v4.6.3-stable_linux.x86_64
 
       - name: Import and parse Godot project
-        run: ./Godot_v4.6.3-stable_linux.x86_64 --headless --path . --import
+        shell: bash
+        run: |
+          set -o pipefail
+          ./Godot_v4.6.3-stable_linux.x86_64 --headless --path . --import 2>&1 | tee godot-import.log
+          if grep -E "SCRIPT ERROR:|^ERROR:" godot-import.log; then
+            echo "Godot import reported script/resource errors."
+            exit 1
+          fi
 
       - name: Smoke-run the main scene
-        run: ./Godot_v4.6.3-stable_linux.x86_64 --headless --path . --quit-after 8
+        shell: bash
+        run: |
+          set -o pipefail
+          ./Godot_v4.6.3-stable_linux.x86_64 --headless --path . --quit-after 8 2>&1 | tee godot-smoke.log
+          if grep -E "SCRIPT ERROR:|^ERROR:" godot-smoke.log; then
+            echo "Godot main scene reported runtime errors."
+            exit 1
+          fi
