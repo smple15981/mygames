@@ -11,10 +11,16 @@ Hearthwild 2D 是一个使用 **Godot 4.x + GDScript** 开发的原创俯视角�
 - `Camera2D` 平滑跟随、Y 排序和纯 2D 碰撞
 - 统一风格的房屋、树群、岩石、围栏和小动物
 - 动态像素水面、环境粒子、局部暖光与拾取物冷光
-- 紧凑的生命值、区域名和操作提示 HUD
+- 20 格背包，前 5 格直接作为快捷栏
+- 数字键与鼠标滚轮切换快捷栏
+- 树枝、碎石、工具、武器、种子、食物等首批物品数据
+- 石斧、石镐、木剑和火把的随身制作界面
+- 原子制作事务：材料不足或普通成品无处放置时不会错误扣除材料
+- 左键按照当前快捷栏物品生成统一动作请求，为后续战斗、采集和种植提供稳定接口
+- Python 仓库契约测试、Godot 无头玩法测试、资源导入和主场景烟雾测试
 - 原创 SVG 仅在运行时图片损坏时作为最后降级资源
 
-当前阶段重点是移动和画面表现。战斗、背包、制作、种植逻辑、敌人 AI、存档和联机尚未实现。
+当前已完成**玩法基础、背包、快捷栏和随身制作阶段**。攻击伤害、闪避、敌人 AI、树木与矿石采集、实体掉落、种植、昼夜、存档和联机仍未接入实际玩法效果。
 
 ## 获取项目
 
@@ -38,10 +44,14 @@ cd mygames
 | 操作 | 键位 |
 |---|---|
 | 移动 | `WASD` 或方向键 |
+| 使用当前快捷栏物品 | 鼠标左键或 `J` |
+| 切换快捷栏 | 数字键 `1–5` 或鼠标滚轮 |
+| 打开或关闭背包与随身制作 | `Tab` |
 | 交互预留 | `E` |
-| 攻击预留 | 鼠标左键或 `J` |
 | 闪避预留 | 空格或 `K` |
 | 暂停预留 | `Esc` |
+
+背包或随身制作界面打开时，单人世界会暂停。当前左键只生成动作请求，尚不会真正伤害敌人、砍树、挖矿或耕地。
 
 ## 开源美术
 
@@ -55,7 +65,7 @@ assets/third_party/ninja-adventure/
 
 - Kenney CC0 粒子图片，用于拾取物和局部灯光
 - Tabler Icons MIT 图标，用于 HUD
-- `assets/original/` 下的原创紧急降级素材
+- `assets/original/` 下的原创紧急降级素材和原创物品图标
 
 准确来源、固定提交、图集修改方式、实际消费路径和许可证记录见 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)。
 
@@ -65,31 +75,46 @@ assets/third_party/ninja-adventure/
 python -m unittest discover -s tests -v
 python tools/validate_project.py .
 python -m compileall -q tools tests
+godot --headless --path . --import
+godot --headless --path . --script res://tests/godot/test_runner.gd
+godot --headless --path . --quit-after 8
 ```
 
-GitHub Actions 使用普通 checkout，不拉取 submodule，并继续执行官方 Godot 无头导入和主场景启动检查。这用于证明普通下载本身就包含所需美术。
+GitHub Actions 使用普通 checkout，不拉取 submodule，并执行 Python 测试、仓库验证、官方 Godot 资源导入、无头玩法测试和主场景启动检查。
 
 ## 目录
 
 ```text
 assets/
-├── original/       原创紧急降级素材
+├── original/       原创降级素材和物品图标
 └── third_party/    直接进入仓库的开源运行时素材
+data/
+├── items/          物品 Resource 配置
+└── recipes/        制作配方 Resource 配置
 scenes/
 ├── bootstrap/      程序入口
-├── player/         玩家、镜头与图集显示
+├── player/         玩家、镜头与组件节点
+├── ui/             快捷栏和背包制作界面
 └── world/          世界、灯光、水体和 HUD
 scripts/
+├── actions/        统一动作请求与结果协议
 ├── assets/         开源素材加载与降级逻辑
-├── player/         移动和角色图集动画
+├── crafting/       配方与原子制作事务
+├── inventory/      20 格背包和快捷栏模型
+├── items/          物品定义与目录
+├── player/         移动、图集动画和物品使用分发
+├── ui/             快捷栏与背包制作界面
 └── world/          地图、道具、水体和环境效果
 tools/              仓库验证工具
-tests/              Python 自动测试
+tests/              Python 与 Godot 无头自动测试
 ```
 
-## 设计文档
+## 设计与实施文档
 
 - 纯 2D 架构：`docs/superpowers/specs/2026-08-04-hearthwild-pure-2d-design.md`
 - 开源美术升级：`docs/superpowers/specs/2026-08-04-open-art-visual-polish-design.md`
+- 核心玩法垂直切片设计：`docs/superpowers/specs/2026-08-04-core-gameplay-vertical-slice-design.md`
+- 五阶段实施路线：`docs/superpowers/plans/2026-08-04-core-gameplay-vertical-slice-roadmap.md`
+- 第一阶段计划：`docs/superpowers/plans/2026-08-04-gameplay-foundation-inventory-crafting.md`
 
 历史 HD-2D 文档仅作为决策记录，不代表当前实现方向。
