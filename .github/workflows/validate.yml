@@ -71,3 +71,29 @@ jobs:
             echo "Godot main scene reported runtime errors."
             exit 1
           fi
+
+      - name: Capture graphical world validation
+        shell: bash
+        timeout-minutes: 2
+        run: |
+          set -o pipefail
+          timeout 60s xvfb-run -a ./Godot_v4.6.3-stable_linux.x86_64 --path . --script res://tests/godot/capture_world.gd 2>&1 | tee godot-capture.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -eq 124 ]; then
+            echo "Godot screenshot capture timed out."
+            exit 1
+          fi
+          if grep -E "SCRIPT ERROR:|^ERROR:" godot-capture.log; then
+            echo "Godot screenshot capture reported errors."
+            exit 1
+          fi
+          test -s artifacts/world-validation.png
+          exit "$status"
+
+      - name: Upload graphical validation
+        uses: actions/upload-artifact@v4
+        with:
+          name: world-validation
+          path: artifacts/world-validation.png
+          if-no-files-found: error
+          retention-days: 14
