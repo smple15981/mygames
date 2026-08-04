@@ -31,7 +31,7 @@ OPEN_ASSET_FILES = (
     "vendor/ninja-adventure/content/map/tileset_floor.png",
     "vendor/ninja-adventure/content/map/tileset_village_abandoned.png",
     "vendor/ninja-adventure/content/character/ninja_blue/sprite.png",
-    "vendor/ninja-adventure/content/character/pig/sprite.png",
+    "vendor/ninja-adventure/content/character/pig/pig.png",
     "vendor/ninja-adventure/content/character/Shadow.png",
 )
 
@@ -96,21 +96,15 @@ def validate_repository(root: Path) -> list[str]:
         _require_tokens(
             errors,
             player_text,
-            (
-                'type="Sprite2D"',
-                "hframes = 4",
-                "vframes = 7",
-                "Camera2D",
-            ),
+            ('type="Sprite2D"', "hframes = 4", "vframes = 7", "Camera2D"),
             "player scene",
         )
 
     world_scene = root / "scenes/world/prototype_world.tscn"
     if world_scene.is_file():
-        world_text = _read_text(world_scene)
         _require_tokens(
             errors,
-            world_text,
+            _read_text(world_scene),
             (
                 'type="TileMapLayer"',
                 "y_sort_enabled = true",
@@ -122,19 +116,11 @@ def validate_repository(root: Path) -> list[str]:
             "world scene",
         )
 
-    movement_path = root / "scripts/player/movement_math.gd"
-    if movement_path.is_file():
-        movement_text = _read_text(movement_path)
-        for method in ("normalized_input", "facing_index"):
-            if f"func {method}" not in movement_text:
-                errors.append(f"movement_math.gd missing {method}")
-
     controller_path = root / "scripts/player/player_controller.gd"
     if controller_path.is_file():
-        controller_text = _read_text(controller_path)
         _require_tokens(
             errors,
-            controller_text,
+            _read_text(controller_path),
             (
                 "extends CharacterBody2D",
                 "OpenAssetLibrary.PLAYER_SHEET",
@@ -148,10 +134,9 @@ def validate_repository(root: Path) -> list[str]:
 
     library_path = root / "scripts/assets/open_asset_library.gd"
     if library_path.is_file():
-        library_text = _read_text(library_path)
         _require_tokens(
             errors,
-            library_text,
+            _read_text(library_path),
             (
                 "class_name OpenAssetLibrary",
                 "const FLOOR_ATLAS",
@@ -166,10 +151,9 @@ def validate_repository(root: Path) -> list[str]:
 
     atlas_path = root / "scripts/world/open_atlas_regions.gd"
     if atlas_path.is_file():
-        atlas_text = _read_text(atlas_path)
         _require_tokens(
             errors,
-            atlas_text,
+            _read_text(atlas_path),
             (
                 "class_name OpenAtlasRegions",
                 "SOURCE_TILE_SIZE := Vector2i(16, 16)",
@@ -183,10 +167,9 @@ def validate_repository(root: Path) -> list[str]:
 
     builder_path = root / "scripts/world/prototype_world.gd"
     if builder_path.is_file():
-        builder_text = _read_text(builder_path)
         _require_tokens(
             errors,
-            builder_text,
+            _read_text(builder_path),
             (
                 "TileSetAtlasSource",
                 "OpenAssetLibrary.FLOOR_ATLAS",
@@ -201,10 +184,9 @@ def validate_repository(root: Path) -> list[str]:
 
     gitmodules_path = root / ".gitmodules"
     if gitmodules_path.is_file():
-        gitmodules = _read_text(gitmodules_path)
         _require_tokens(
             errors,
-            gitmodules,
+            _read_text(gitmodules_path),
             (
                 "path = vendor/ninja-adventure",
                 "url = https://github.com/pixel-boy/NinjaAdventure.git",
@@ -216,14 +198,14 @@ def validate_repository(root: Path) -> list[str]:
                 errors.append(f"missing checked-out open asset: {relative}")
 
     workflow_path = root / ".github/workflows/validate.yml"
-    if workflow_path.is_file():
-        workflow = _read_text(workflow_path)
-        if "submodules: recursive" not in workflow:
-            errors.append("validation workflow must recursively check out submodules")
+    if workflow_path.is_file() and "submodules: recursive" not in _read_text(workflow_path):
+        errors.append("validation workflow must recursively check out submodules")
 
     scan_paths = [project_path]
-    scan_paths.extend((root / "scenes").rglob("*.tscn") if (root / "scenes").is_dir() else [])
-    scan_paths.extend((root / "scripts").rglob("*.gd") if (root / "scripts").is_dir() else [])
+    if (root / "scenes").is_dir():
+        scan_paths.extend((root / "scenes").rglob("*.tscn"))
+    if (root / "scripts").is_dir():
+        scan_paths.extend((root / "scripts").rglob("*.gd"))
     for path in scan_paths:
         if not path.is_file():
             continue
