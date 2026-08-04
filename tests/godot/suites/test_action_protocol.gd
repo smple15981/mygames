@@ -61,6 +61,9 @@ static func run() -> Array[String]:
         failures.append(TestAssert.equal(emitted[0].item_id, &"wooden_sword", "item use id"))
         failures.append(TestAssert.truthy(emitted[0].sequence_id > 0, "item use sequence"))
         failures.append(TestAssert.equal(emitted[0].direction, Vector2.RIGHT, "item use direction"))
+        failures.append(TestAssert.equal(emitted[0].damage, 12, "item use damage"))
+        failures.append(TestAssert.equal(emitted[0].range, 56.0, "item use range"))
+        failures.append(TestAssert.equal(emitted[0].arc_degrees, 90.0, "item use arc"))
 
     actor.free()
     test_parent.free()
