@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="WorldPropDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/world_prop_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"farmhouse"
+display_name = "农舍"
+visual_scale = 2.0
+visual_offset = Vector2(0, -92)
+solid = true
+collision_rects = Array[Rect2]([Rect2(-56, -44, 40, 44), Rect2(16, -44, 40, 44), Rect2(-56, -44, 112, 12)])
+marker_category = 1
