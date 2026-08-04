@@ -77,7 +77,7 @@ jobs:
         timeout-minutes: 2
         run: |
           set -o pipefail
-          timeout 60s xvfb-run -a ./Godot_v4.6.3-stable_linux.x86_64 --path . --script res://tests/godot/capture_world.gd 2>&1 | tee godot-capture.log
+          timeout 60s xvfb-run -a ./Godot_v4.6.3-stable_linux.x86_64 --audio-driver Dummy --path . --script res://tests/godot/capture_world.gd 2>&1 | tee godot-capture.log
           status=${PIPESTATUS[0]}
           if [ "$status" -eq 124 ]; then
             echo "Godot screenshot capture timed out."
