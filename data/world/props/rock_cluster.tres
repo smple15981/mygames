@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="WorldPropDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/world_prop_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rock_cluster"
+display_name = "岩石堆"
+visual_scale = 1.7
+visual_offset = Vector2(0, -24)
+solid = true
+collision_rects = Array[Rect2]([Rect2(-17, -12, 34, 12)])
+marker_category = 0

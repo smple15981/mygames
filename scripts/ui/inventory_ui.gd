@@ -49,40 +49,31 @@ func bind(model: InventoryModel) -> void:
     _refresh_recipe_detail()
 
 
-func _unhandled_input(event: InputEvent) -> void:
-    if not event.is_action_pressed("inventory"):
+func is_open() -> bool:
+    return visible
+
+
+func set_open(opened: bool) -> void:
+    if opened and inventory == null:
+        push_warning("InventoryUI cannot open before bind")
         return
+    if visible == opened:
+        return
+
+    visible = opened
     if visible:
-        close()
-    else:
-        open()
-    get_viewport().set_input_as_handled()
+        status_label.text = ""
+        _refresh_inventory()
+        _refresh_recipe_detail()
+    opened_changed.emit(visible)
 
 
 func open() -> void:
-    if inventory == null or visible:
-        return
-    process_mode = Node.PROCESS_MODE_WHEN_PAUSED
-    visible = true
-    status_label.text = ""
-    _refresh_inventory()
-    _refresh_recipe_detail()
-    get_tree().paused = true
-    opened_changed.emit(true)
+    set_open(true)
 
 
 func close() -> void:
-    if not visible:
-        return
-    get_tree().paused = false
-    visible = false
-    process_mode = Node.PROCESS_MODE_ALWAYS
-    opened_changed.emit(false)
-
-
-func _exit_tree() -> void:
-    if visible and get_tree() != null:
-        get_tree().paused = false
+    set_open(false)
 
 
 func _build_inventory_grid() -> void:
