@@ -3,6 +3,7 @@ extends SceneTree
 const SUITES := [
     preload("res://tests/godot/suites/test_action_protocol.gd"),
     preload("res://tests/godot/suites/test_inventory_model.gd"),
+    preload("res://tests/godot/suites/test_crafting_service.gd"),
 ]
 
 

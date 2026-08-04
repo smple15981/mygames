@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RecipeDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/crafting/recipe_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"stone_pickaxe"
+display_name = "制作石镐"
+station = 0
+ingredients = {"branch": 3, "loose_stone": 3}
+output_item_id = &"stone_pickaxe"
+output_quantity = 1
