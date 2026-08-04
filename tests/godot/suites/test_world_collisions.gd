@@ -89,7 +89,4 @@ static func run() -> Array[String]:
     parent.free()
     registry.free()
     factory_registry.free()
-    tree.free()
-    decorative.free()
-    broken.free()
     return failures.filter(func(message: String) -> bool: return not message.is_empty())
