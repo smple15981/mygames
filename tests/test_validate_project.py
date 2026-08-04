@@ -7,6 +7,7 @@ from pathlib import Path
 from tools.validate_project import (
     GAMEPLAY_FOUNDATION_FILES,
     OPEN_ASSET_FILES,
+    WORLD_ENHANCEMENT_FILES,
     validate_repository,
 )
 
@@ -51,7 +52,7 @@ class ProjectValidatorTests(unittest.TestCase):
         self.assertIn("player scene missing contract token: vframes = 7", errors)
         self.assertIn("player scene missing contract token: Camera2D", errors)
 
-    def test_world_requires_polished_2d_stack(self) -> None:
+    def test_world_requires_modular_2d_stack(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             scene = root / "scenes/world/prototype_world.tscn"
@@ -62,7 +63,10 @@ class ProjectValidatorTests(unittest.TestCase):
             'type="TileMapLayer"',
             "y_sort_enabled = true",
             "CanvasModulate",
-            "WaterSurface",
+            "WorldLayout",
+            "WorldCollisionRegistry",
+            "PauseCoordinator",
+            "GameInputRouter",
             "PointLight2D",
             "CanvasLayer",
         ):
@@ -110,6 +114,11 @@ class ProjectValidatorTests(unittest.TestCase):
     def test_gameplay_foundation_files_exist(self) -> None:
         repository_root = Path(__file__).resolve().parents[1]
         for relative in GAMEPLAY_FOUNDATION_FILES:
+            self.assertTrue((repository_root / relative).is_file(), relative)
+
+    def test_world_enhancement_files_exist(self) -> None:
+        repository_root = Path(__file__).resolve().parents[1]
+        for relative in WORLD_ENHANCEMENT_FILES:
             self.assertTrue((repository_root / relative).is_file(), relative)
 
     def test_ci_does_not_require_submodules_for_runtime(self) -> None:
@@ -173,6 +182,19 @@ class ProjectValidatorTests(unittest.TestCase):
         self.assertIn("Vector2i(96, 64)", text)
         self.assertIn("Vector2i(32, 32)", text)
         self.assertIn("func normalized_to_minimap", text)
+
+    def test_world_builder_owns_generation_contract(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        layout = (root / "scripts/world/world_layout.gd").read_text(encoding="utf-8")
+        for phrase in (
+            "class_name WorldLayout",
+            "TileSetAtlasSource",
+            "WorldPropFactory.spawn_atlas_prop",
+            "func boundary_cells",
+            "func validate_required_routes",
+            "_build_river_collisions",
+        ):
+            self.assertIn(phrase, layout)
 
     def test_readme_documents_bundled_open_art(self) -> None:
         repository_root = Path(__file__).resolve().parents[1]
