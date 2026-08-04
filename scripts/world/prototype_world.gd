@@ -125,7 +125,7 @@ func _set_ground_cell(cell: Vector2i, tile: int) -> void:
 
 func _open_coordinate_for(tile: int, cell: Vector2i) -> Vector2i:
     if tile == GroundTile.GRASS or tile == GroundTile.WATER:
-        var index := abs(cell.x * 31 + cell.y * 17) % OpenAtlasRegions.GRASS_TILES.size()
+        var index: int = absi(cell.x * 31 + cell.y * 17) % OpenAtlasRegions.GRASS_TILES.size()
         return OpenAtlasRegions.GRASS_TILES[index]
     var coordinate: Vector2i = _open_floor_coordinates.get(
         tile,
@@ -321,7 +321,7 @@ func _spawn_fallback_prop(
 
 
 func _spawn_critter() -> void:
-    var using_open_sheet := ResourceLoader.exists(OpenAssetLibrary.PIG_SHEET)
+    var using_open_sheet := OpenAssetLibrary.texture_exists(OpenAssetLibrary.PIG_SHEET)
     var texture := OpenAssetLibrary.load_texture(
         OpenAssetLibrary.PIG_SHEET,
         "res://assets/original/world/slime.svg"
