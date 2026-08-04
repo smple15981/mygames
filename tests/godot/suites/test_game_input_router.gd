@@ -3,7 +3,8 @@ extends RefCounted
 
 static func run() -> Array[String]:
     var failures: Array[String] = []
-    var root := Engine.get_main_loop().root
+    var scene_tree := Engine.get_main_loop() as SceneTree
+    var root: Window = scene_tree.root
 
     var pause := PauseCoordinator.new()
     root.add_child(pause)
@@ -68,5 +69,5 @@ static func run() -> Array[String]:
     inventory_ui.free()
     inventory.free()
     pause.free()
-    root.get_tree().paused = false
+    scene_tree.paused = false
     return failures.filter(func(message: String) -> bool: return not message.is_empty())
