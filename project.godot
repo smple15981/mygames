@@ -55,6 +55,30 @@ dodge={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"physical_keycode":32,"unicode":32), Object(InputEventKey,"physical_keycode":75,"unicode":107)]
 }
+inventory={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":4194308,"unicode":9)]
+}
+quick_slot_1={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":49,"unicode":49)]
+}
+quick_slot_2={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":50,"unicode":50)]
+}
+quick_slot_3={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":51,"unicode":51)]
+}
+quick_slot_4={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":52,"unicode":52)]
+}
+quick_slot_5={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":53,"unicode":53)]
+}
 pause={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"physical_keycode":4194305)]
