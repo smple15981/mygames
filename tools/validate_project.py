@@ -75,6 +75,8 @@ WORLD_ENHANCEMENT_FILES = (
     "scripts/player/player_stats.gd",
     "scripts/ui/stats_hud.gd",
     "scenes/ui/stats_hud.tscn",
+    "scripts/ui/minimap.gd",
+    "scenes/ui/minimap.tscn",
     "scripts/player/camera_rig.gd",
     "scripts/core/pause_coordinator.gd",
     "scripts/input/game_input_router.gd",
@@ -94,6 +96,7 @@ WORLD_ENHANCEMENT_FILES = (
     "tests/godot/suites/test_game_input_router.gd",
     "tests/godot/suites/test_world_collisions.gd",
     "tests/godot/suites/test_world_integration.gd",
+    "tests/godot/suites/test_minimap.gd",
 )
 
 OPEN_ASSET_FILES = (
@@ -204,6 +207,8 @@ def validate_repository(root: Path) -> list[str]:
                 "CanvasLayer",
                 "scenes/ui/hotbar_ui.tscn",
                 "scenes/ui/inventory_ui.tscn",
+                "scenes/ui/stats_hud.tscn",
+                "scenes/ui/minimap.tscn",
             ),
             "world scene",
         )
@@ -224,6 +229,24 @@ def validate_repository(root: Path) -> list[str]:
             _read_text(inventory_scene),
             ("GridContainer", "columns = 5", "RecipeList", "CraftButton"),
             "inventory scene",
+        )
+
+    stats_scene = root / "scenes/ui/stats_hud.tscn"
+    if stats_scene.is_file():
+        _require_tokens(
+            errors,
+            _read_text(stats_scene),
+            ("StatsHUD", "Health", "Stamina", "Mana", "ProgressBar"),
+            "stats HUD scene",
+        )
+
+    minimap_scene = root / "scenes/ui/minimap.tscn"
+    if minimap_scene.is_file():
+        _require_tokens(
+            errors,
+            _read_text(minimap_scene),
+            ("MiniMapFrame", "MiniMap", "scripts/ui/minimap.gd"),
+            "minimap scene",
         )
 
     controller_path = root / "scripts/player/player_controller.gd"
@@ -297,6 +320,88 @@ def validate_repository(root: Path) -> list[str]:
             "open_atlas_regions.gd",
         )
 
+    layout_config_path = root / "scripts/world/world_layout_config.gd"
+    if layout_config_path.is_file():
+        _require_tokens(
+            errors,
+            _read_text(layout_config_path),
+            (
+                "class_name WorldLayoutConfig",
+                "Vector2i(96, 64)",
+                "Vector2i(32, 32)",
+                "func world_to_normalized",
+                "func normalized_to_minimap",
+                "func is_bridge_cell",
+                "func is_water_cell",
+            ),
+            "world_layout_config.gd",
+        )
+
+    camera_path = root / "scripts/player/camera_rig.gd"
+    if camera_path.is_file():
+        _require_tokens(
+            errors,
+            _read_text(camera_path),
+            (
+                "class_name CameraRig",
+                "MIN_ZOOM := 0.75",
+                "MAX_ZOOM := 1.50",
+                "ZOOM_STEP := 0.125",
+                "func change_zoom_steps",
+                "func configure_world",
+                "clamp_center_to_world",
+            ),
+            "camera_rig.gd",
+        )
+
+    router_path = root / "scripts/input/game_input_router.gd"
+    if router_path.is_file():
+        _require_tokens(
+            errors,
+            _read_text(router_path),
+            (
+                "class_name GameInputRouter",
+                "func _input",
+                "KEY_TAB",
+                "KEY_ESCAPE",
+                "ctrl_pressed",
+                "change_zoom_steps",
+                "set_selected_slot",
+            ),
+            "game_input_router.gd",
+        )
+
+    prop_factory_path = root / "scripts/world/world_prop_factory.gd"
+    if prop_factory_path.is_file():
+        _require_tokens(
+            errors,
+            _read_text(prop_factory_path),
+            (
+                "class_name WorldPropFactory",
+                "instance_id",
+                '"%s:%d"',
+                "StaticBody2D",
+                "registry.register_rect",
+            ),
+            "world_prop_factory.gd",
+        )
+
+    minimap_path = root / "scripts/ui/minimap.gd"
+    if minimap_path.is_file():
+        _require_tokens(
+            errors,
+            _read_text(minimap_path),
+            (
+                "class_name MiniMap",
+                "MAP_SIZE := Vector2(160, 160)",
+                "func register_marker",
+                "func player_marker_position",
+                "func cell_rect_to_map",
+                "WorldLayoutConfig.FARMSTEAD",
+            ),
+            "minimap.gd",
+        )
+
     composition_path = root / "scripts/world/prototype_world.gd"
     if composition_path.is_file():
         _require_tokens(
@@ -310,6 +415,8 @@ def validate_repository(root: Path) -> list[str]:
                 "input_router.bind",
                 "hotbar_ui.bind(player_inventory)",
                 "inventory_ui.bind(player_inventory)",
+                "stats_hud.bind(player_stats)",
+                "minimap.bind(world_layout.config, player)",
             ),
             "prototype_world.gd",
         )
