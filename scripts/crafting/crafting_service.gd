@@ -11,7 +11,8 @@ static func craft(recipe: RecipeDefinition, inventory: InventoryModel) -> Crafti
     for raw_item_id in recipe.ingredients:
         var item_id := StringName(str(raw_item_id))
         var required := int(recipe.ingredients[raw_item_id])
-        if required <= 0 or ItemCatalog.get_item(item_id) == null:
+        var ingredient := ItemCatalog.get_item(item_id)
+        if required <= 0 or ingredient == null or ingredient.key_item:
             return CraftingResult.failure(&"invalid_recipe")
         if inventory.count_item(item_id) < required:
             return CraftingResult.failure(&"missing_materials")
