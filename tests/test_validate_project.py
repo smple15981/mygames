@@ -124,6 +124,14 @@ class ProjectValidatorTests(unittest.TestCase):
         self.assertIn("--script res://tests/godot/test_runner.gd", workflow)
         self.assertTrue((root / "tests/godot/test_runner.gd").is_file())
 
+    def test_item_catalog_is_compile_time_global_class(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        catalog = (root / "scripts/items/item_catalog.gd").read_text(encoding="utf-8")
+        project = (root / "project.godot").read_text(encoding="utf-8")
+        self.assertIn("class_name ItemCatalog", catalog)
+        self.assertIn("static func get_item", catalog)
+        self.assertNotIn('ItemCatalog="*res://scripts/items/item_catalog.gd"', project)
+
     def test_inventory_ui_contract_exists(self) -> None:
         repository_root = Path(__file__).resolve().parents[1]
         for relative in (
