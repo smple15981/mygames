@@ -9,6 +9,10 @@ const SUITES := [
 
 
 func _init() -> void:
+    call_deferred("_run_tests")
+
+
+func _run_tests() -> void:
     print("HEARTHWILD_TEST_RUNNER_START")
     var failures: Array[String] = []
     for index in SUITES.size():
