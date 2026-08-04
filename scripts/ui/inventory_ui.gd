@@ -95,7 +95,6 @@ func _build_inventory_grid() -> void:
         button.name = "Slot%d" % index
         button.custom_minimum_size = Vector2(50, 43)
         button.focus_mode = Control.FOCUS_NONE
-        button.icon_max_width = 24
         button.expand_icon = true
         button.mouse_filter = Control.MOUSE_FILTER_IGNORE
         button.add_theme_font_size_override("font_size", 10)
