@@ -30,6 +30,10 @@ func bind(model: InventoryModel) -> void:
     _refresh()
 
 
+func set_modal_dimmed(dimmed: bool) -> void:
+    modulate = Color(1.0, 1.0, 1.0, 0.55 if dimmed else 1.0)
+
+
 func _ensure_slots() -> void:
     if slots_container.get_child_count() == SLOT_COUNT:
         return
