@@ -25,14 +25,16 @@
 - 地面使用 Ninja Adventure 的 `tileset_floor.png`，道路、泥土、草地和石地区域来自同一图集。
 - 房屋、树木、岩石和围栏使用 `tileset_village_abandoned.png` 的区域切片。
 - 玩家使用 `content/character/ninja_blue/sprite.png`，按上游定义的 4 列方向 × 7 行动作布局播放。
-- 敌人原型使用 `content/character/pig/sprite.png`，不在本阶段加入 AI。
-- 加入像素水面动画、柔和全局色调、房屋暖光、漂浮粒子和屏幕边缘轻微暗角。
+- 动物原型使用 `content/character/pig/pig.png`，按上游2帧横向布局播放，不在本阶段加入 AI。
+- 加入像素水面动画、柔和全局色调、房屋暖光和漂浮粒子。
 
 ## 4. 技术结构
 
 ### 4.1 OpenAssetLibrary
 
-`OpenAssetLibrary` 负责检查子模块是否存在并加载纹理。每个资源都提供开源路径和本地降级路径，场景不会因为未初始化 submodule 而崩溃。
+`OpenAssetLibrary` 负责检查 submodule 文件并加载纹理。因为上游目录自身包含 `project.godot`，Godot 会把它视为嵌套项目而跳过常规导入；因此 `res://vendor/` 下的 PNG 使用 `Image.load()` 解码，再创建 `ImageTexture`。本地 SVG 与其他仓库内素材继续通过 `ResourceLoader` 加载。
+
+所有纹理进入缓存。子模块缺失、文件解码失败或路径不存在时，加载器输出一次明确警告并使用原创降级资源。
 
 ### 4.2 PrototypeWorld
 
@@ -42,7 +44,7 @@
 2. 以 40×24 格生成草地、道路、农田、水域和石地区域。
 3. 从村庄图集切片生成房屋、树木、岩石、围栏和装饰物。
 4. 创建与画面对应的简化碰撞体。
-5. 在缺少子模块时自动退回当前颜色瓦片和 SVG 道具。
+5. 在缺少子模块时自动退回颜色瓦片和 SVG 道具。
 
 ### 4.3 PlayerController
 
@@ -58,14 +60,15 @@
 - `WaterSurface` 使用 `_draw()` 生成像素水面和移动高光，不依赖额外贴图。
 - `CanvasModulate` 统一场景色调。
 - `PointLight2D` 为房屋与掉落物提供暖色/冷色局部光。
-- HUD 使用更紧凑的像素面板、生命条、区域名和操作提示。
+- HUD 使用紧凑像素面板、生命条、区域名和操作提示。
 
 ## 5. 错误处理
 
 - 子模块未初始化：打印一次清晰警告并使用原创占位资源。
-- 图集路径存在但加载失败：跳过对应装饰，不阻断主场景。
-- 图集区域超出纹理范围：验证器报告错误，运行时不创建该切片。
-- CI 使用 `actions/checkout` 的 `submodules: recursive`，保证正式验证包含开源素材。
+- PNG 解码失败：跳过对应开源纹理并尝试降级资源。
+- 图集区域超出纹理范围：运行时跳过该切片并输出警告。
+- CI 使用 `actions/checkout` 的 `submodules: recursive`，保证验证包含开源素材。
+- CI 使用官方 Godot 进行无头导入和主场景短时启动；出现 `SCRIPT ERROR` 或 `ERROR:` 时直接失败。
 
 ## 6. 测试与验收
 
@@ -78,6 +81,7 @@
 - 世界脚本声明开源地表、村庄、角色和阴影路径。
 - 子模块缺失时仍存在降级资源。
 - 所有第三方来源在 `THIRD_PARTY_NOTICES.md` 登记。
+- Godot 可以解析全部脚本并短时启动主场景。
 
 人工验收：
 
