@@ -20,7 +20,7 @@ class ProjectValidatorTests(unittest.TestCase):
             errors = validate_repository(root)
         self.assertIn("project.godot missing run/main_scene", errors)
 
-    def test_project_requires_target_viewport(self) -> None:
+    def test_project_requires_pixel_viewport(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "project.godot").write_text(
@@ -28,25 +28,49 @@ class ProjectValidatorTests(unittest.TestCase):
                 encoding="utf-8",
             )
             errors = validate_repository(root)
-        self.assertIn("project.godot must configure a 960x540 viewport", errors)
+        self.assertIn("project.godot must configure a 640x360 viewport", errors)
 
-    def test_player_contract(self) -> None:
+    def test_player_requires_pure_2d_nodes(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            player_scene = root / "scenes/player/player.tscn"
-            player_scene.parent.mkdir(parents=True)
-            player_scene.write_text('[gd_scene format=3]\n[node name="Player" type="Node3D"]\n', encoding="utf-8")
-            movement = root / "scripts/player/movement_math.gd"
-            movement.parent.mkdir(parents=True)
-            movement.write_text("extends RefCounted\n", encoding="utf-8")
-            controller = root / "scripts/player/player_controller.gd"
-            controller.write_text("extends Node3D\n", encoding="utf-8")
+            scene = root / "scenes/player/player.tscn"
+            scene.parent.mkdir(parents=True)
+            scene.write_text('[node name="Player" type="CharacterBody3D"]\n', encoding="utf-8")
             errors = validate_repository(root)
-        self.assertIn("player scene root must be CharacterBody3D", errors)
-        self.assertIn("movement_math.gd missing normalized_input", errors)
-        self.assertIn("movement_math.gd missing world_direction", errors)
-        self.assertIn("movement_math.gd missing facing_index", errors)
-        self.assertIn("player_controller.gd must extend CharacterBody3D", errors)
+        self.assertIn("player scene root must be CharacterBody2D", errors)
+        self.assertIn("player scene must use AnimatedSprite2D", errors)
+        self.assertIn("player scene must include Camera2D", errors)
+
+    def test_world_requires_tilemap_and_y_sort(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            scene = root / "scenes/world/prototype_world.tscn"
+            scene.parent.mkdir(parents=True)
+            scene.write_text('[node name="World" type="Node2D"]\n', encoding="utf-8")
+            errors = validate_repository(root)
+        self.assertIn("world scene must include TileMapLayer", errors)
+        self.assertIn("world entities must enable y sorting", errors)
+
+    def test_3d_nodes_are_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            scene = root / "scenes/example.tscn"
+            scene.parent.mkdir(parents=True)
+            scene.write_text('[node name="Camera" type="Camera3D"]\n', encoding="utf-8")
+            errors = validate_repository(root)
+        self.assertIn("3D token remains in scenes/example.tscn: Camera3D", errors)
+
+    def test_scene_resources_must_exist(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            scene = root / "scenes/example.tscn"
+            scene.parent.mkdir(parents=True)
+            scene.write_text(
+                '[ext_resource type="Texture2D" path="res://missing.png" id="1"]\n',
+                encoding="utf-8",
+            )
+            errors = validate_repository(root)
+        self.assertIn("missing scene resource: scenes/example.tscn -> missing.png", errors)
 
     def test_third_party_assets_must_be_registered(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -61,23 +85,12 @@ class ProjectValidatorTests(unittest.TestCase):
             errors,
         )
 
-    def test_scene_resources_must_exist(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            scene = root / "scenes/example.tscn"
-            scene.parent.mkdir(parents=True)
-            scene.write_text(
-                '[gd_scene format=3]\n[ext_resource type="Texture2D" path="res://missing.png" id="1"]\n',
-                encoding="utf-8",
-            )
-            errors = validate_repository(root)
-        self.assertIn("missing scene resource: scenes/example.tscn -> missing.png", errors)
-
-    def test_readme_documents_bootstrap(self) -> None:
+    def test_readme_documents_pure_2d_stack(self) -> None:
         repository_root = Path(__file__).resolve().parents[1]
         readme = (repository_root / "README.md").read_text(encoding="utf-8")
-        for phrase in ("Godot 4", "WASD", "HD-2D", "THIRD_PARTY_NOTICES.md"):
+        for phrase in ("Hearthwild 2D", "TileMapLayer", "CharacterBody2D", "纯 2D"):
             self.assertIn(phrase, readme)
+        self.assertNotIn("Sprite3D", readme)
 
 
 if __name__ == "__main__":
