@@ -1,41 +1,66 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player_controller.gd" id="1_controller"]
 [ext_resource type="Texture2D" path="res://assets/original/player/player.svg" id="2_player"]
+[ext_resource type="Texture2D" path="res://assets/original/player/shadow.svg" id="3_shadow"]
 
-[sub_resource type="CapsuleShape3D" id="Shape_player"]
-radius = 0.35
-height = 1.25
+[sub_resource type="RectangleShape2D" id="Shape_player"]
+size = Vector2(16, 12)
 
-[sub_resource type="StandardMaterial3D" id="Mat_shadow"]
-transparency = 1
-shading_mode = 0
-albedo_color = Color(0.03, 0.04, 0.04, 0.38)
+[sub_resource type="SpriteFrames" id="Frames_player"]
+animations = [{
+"frames": [{"duration": 1.0, "texture": ExtResource("2_player")}],
+"loop": true,
+"name": &"idle_down",
+"speed": 4.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("2_player")}],
+"loop": true,
+"name": &"idle_side",
+"speed": 4.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("2_player")}],
+"loop": true,
+"name": &"idle_up",
+"speed": 4.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("2_player")}],
+"loop": true,
+"name": &"walk_down",
+"speed": 8.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("2_player")}],
+"loop": true,
+"name": &"walk_side",
+"speed": 8.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("2_player")}],
+"loop": true,
+"name": &"walk_up",
+"speed": 8.0
+}]
 
-[sub_resource type="QuadMesh" id="Mesh_shadow"]
-material = SubResource("Mat_shadow")
-size = Vector2(0.9, 0.45)
-orientation = 1
-
-[sub_resource type="BoxMesh" id="Mesh_debug_body"]
-size = Vector3(0.55, 0.9, 0.3)
-
-[node name="Player" type="CharacterBody3D"]
+[node name="Player" type="CharacterBody2D"]
 script = ExtResource("1_controller")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-position = Vector3(0, 0.63, 0)
+[node name="Shadow" type="Sprite2D" parent="."]
+texture = ExtResource("3_shadow")
+position = Vector2(0, 16)
+scale = Vector2(1, 1)
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("Frames_player")
+animation = &"idle_down"
+position = Vector2(0, -10)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 11)
 shape = SubResource("Shape_player")
 
-[node name="Visual" type="Node3D" parent="."]
-position = Vector3(0, 1.0, 0)
-
-[node name="Sprite3D" type="Sprite3D" parent="Visual"]
-texture = ExtResource("2_player")
-pixel_size = 0.035
-billboard = 1
-alpha_cut = 1
-
-[node name="Shadow" type="MeshInstance3D" parent="."]
-position = Vector3(0, 0.025, 0)
-mesh = SubResource("Mesh_shadow")
+[node name="Camera2D" type="Camera2D" parent="."]
+position_smoothing_enabled = true
+position_smoothing_speed = 7.0
+limit_left = 0
+limit_top = 0
+limit_right = 1280
+limit_bottom = 768
