@@ -24,7 +24,7 @@ Consumed paths:
 - `vendor/ninja-adventure/content/map/tileset_floor.png`
 - `vendor/ninja-adventure/content/map/tileset_village_abandoned.png`
 - `vendor/ninja-adventure/content/character/ninja_blue/sprite.png`
-- `vendor/ninja-adventure/content/character/pig/sprite.png`
+- `vendor/ninja-adventure/content/character/pig/pig.png`
 - `vendor/ninja-adventure/content/character/Shadow.png`
 
 Only the art assets above are consumed by Hearthwild. Ninja Adventure gameplay scripts are not imported or executed.
