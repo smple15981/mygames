@@ -47,8 +47,22 @@ static func run() -> Array[String]:
     failures.append(TestAssert.equal(pending.count_item(&"slime_gel"), 98, "pending gel consumed"))
     failures.append(TestAssert.equal(pending.count_item(&"wooden_hoe"), 0, "pending output not lost into inventory"))
 
+    var protected := InventoryModel.new()
+    protected.add_item(&"moon_dew_seed", 1)
+    var protected_before := protected.serialize()
+    var invalid_recipe := RecipeDefinition.new()
+    invalid_recipe.id = &"consume_key_item"
+    invalid_recipe.ingredients = {&"moon_dew_seed": 1}
+    invalid_recipe.output_item_id = &"branch"
+    invalid_recipe.output_quantity = 1
+    var protected_result := CraftingService.craft(invalid_recipe, protected)
+    failures.append(TestAssert.truthy(not protected_result.ok, "key ingredient rejected"))
+    failures.append(TestAssert.equal(protected_result.reason, &"invalid_recipe", "key ingredient reason"))
+    failures.append(TestAssert.equal(protected.serialize(), protected_before, "key ingredient preserved"))
+
     inventory.free()
     missing.free()
     full.free()
     pending.free()
+    protected.free()
     return failures.filter(func(message: String) -> bool: return not message.is_empty())
