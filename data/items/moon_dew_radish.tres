@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/item_definition.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/original/items/moon_dew_radish.svg" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"moon_dew_radish"
+display_name = "月露萝卜"
+icon = ExtResource("2")
+item_type = 4
+max_stack = 20
+heal_amount = 15
+consume_duration = 0.55
