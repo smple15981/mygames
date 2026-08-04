@@ -1,135 +1,75 @@
 # Open-Art Visual Polish Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Replace the placeholder-looking Hearthwild 2D presentation with a cohesive open-asset pixel-art scene while preserving the current movement-only gameplay scope.
 
-**Architecture:** Pin Ninja Adventure as a Git submodule, load its textures through a fallback-aware asset library, build the ground and props from atlas regions at runtime, and animate the player from the upstream 4×7 sprite sheet. Visual effects remain isolated in small 2D scripts so they can be replaced without touching gameplay systems.
+**Architecture:** Ninja Adventure is pinned as a Git submodule. Because the upstream directory is itself a Godot project, the main project loads its selected PNG files through `Image.load()` and caches them as `ImageTexture` objects. Ground and props are built from atlas regions at runtime, the player uses the upstream 4×7 sheet, and all open assets have local fallback art.
 
-**Tech Stack:** Godot 4.3+, GDScript, TileMapLayer, Sprite2D atlas animation, Git submodules, Python 3.13 repository validation, GitHub Actions.
+**Tech Stack:** Godot 4.3+, GDScript, TileMapLayer, Sprite2D atlas animation, Git submodules, Python 3.13 validation, GitHub Actions, official Godot 4.6.3 headless verification.
 
 ## Global Constraints
 
-- Runtime remains pure 2D; no `Node3D`, `Sprite3D`, `Camera3D`, `MeshInstance3D`, `StaticBody3D` or `CharacterBody3D`.
-- Base viewport remains 640×360 with nearest-neighbor texture filtering.
-- Open-source asset reference is pinned to Ninja Adventure commit `6ac78232d5aedcc85ce5f27d060ea92366f7c24a`.
-- Original SVG assets remain available as fallback files.
+- Runtime remains pure 2D.
+- Base viewport remains 640×360 with nearest-neighbor filtering and pixel snapping.
+- Ninja Adventure is pinned to `6ac78232d5aedcc85ce5f27d060ea92366f7c24a`.
+- Original SVG assets remain available as fallbacks.
 - This phase does not add combat, inventory, farming simulation, saves or multiplayer.
 
----
+## Task 1: Pin and validate the open asset source
 
-### Task 1: Pin and validate the open asset source
+- [x] Add `.gitmodules` and the `vendor/ninja-adventure` gitlink.
+- [x] Configure recursive submodule checkout in GitHub Actions.
+- [x] Test the URL, checked-out paths and CI configuration.
+- [x] Register authors, CC0 status, commit and consumed paths.
 
-**Files:**
-- Create: `.gitmodules`
-- Add gitlink: `vendor/ninja-adventure`
-- Modify: `.github/workflows/validate.yml`
-- Modify: `THIRD_PARTY_NOTICES.md`
-- Test: `tests/test_validate_project.py`
+## Task 2: Add fallback-aware asset loading
 
-**Interfaces:**
-- Produces: checked-out textures under `res://vendor/ninja-adventure/content/`.
+- [x] Add `OpenAssetLibrary` constants for floor, village, player, pig and shadow images.
+- [x] Decode PNG files under the nested vendor project with `Image.load()`.
+- [x] Cache generated `ImageTexture` instances.
+- [x] Fall back to original local art with one-time warnings.
 
-- [ ] Add the Ninja Adventure repository as a submodule pinned to the approved commit.
-- [ ] Configure `actions/checkout@v4` with `submodules: recursive`.
-- [ ] Add tests asserting the submodule URL, pinned asset paths and CI checkout setting.
-- [ ] Register the upstream authors, CC0 statement, commit and consumed paths in notices.
-- [ ] Run `python -m unittest discover -s tests -v` and confirm the new tests pass.
+## Task 3: Rebuild the player visual
 
-### Task 2: Add fallback-aware asset loading
+- [x] Replace the single-frame visual with a `Sprite2D` using 4 columns × 7 rows.
+- [x] Map Down=0, Up=1, Left=2 and Right=3.
+- [x] Keep idle on row 0 and loop rows 0–3 while moving.
+- [x] Preserve normalized movement, collision and Camera2D.
 
-**Files:**
-- Create: `scripts/assets/open_asset_library.gd`
-- Test: `tests/test_validate_project.py`
+## Task 4: Replace generated color tiles
 
-**Interfaces:**
-- Produces: `OpenAssetLibrary.load_texture(primary_path: String, fallback_path: String) -> Texture2D`.
-- Produces: constants for floor atlas, village atlas, player sheet, pig sheet and shadow texture.
+- [x] Define explicit 16×16 floor atlas coordinates.
+- [x] Build the `TileSetAtlasSource` from the open floor texture at runtime.
+- [x] Display the source at 2× scale for a 32×32 logical grid.
+- [x] Keep deterministic grass variation and generated-color fallback tiles.
 
-- [ ] Add failing contract tests for the class, paths and fallback method.
-- [ ] Implement the loader with one-time warnings when the submodule is missing.
-- [ ] Ensure a missing primary resource returns the fallback texture instead of `null` when the fallback exists.
-- [ ] Run the validator tests.
+## Task 5: Replace placeholder props
 
-### Task 3: Rebuild the player visual from the open sprite sheet
+- [x] Remove fixed SVG house/tree/rock nodes from the runtime scene.
+- [x] Spawn houses, tree clusters, rocks and a fence from the village atlas.
+- [x] Attach simplified 2D collisions and preserve Y sorting.
+- [x] Add the upstream two-frame `pig/pig.png` as the visual creature placeholder.
+- [x] Preserve SVG fallback props and slime fallback.
 
-**Files:**
-- Modify: `scenes/player/player.tscn`
-- Modify: `scripts/player/player_controller.gd`
-- Test: `tests/test_validate_project.py`
+## Task 6: Add environment polish
 
-**Interfaces:**
-- Consumes: `OpenAssetLibrary.PLAYER_SHEET` and `OpenAssetLibrary.SHADOW_TEXTURE`.
-- Produces: `_direction_column(direction: Vector2) -> int` and `_animation_row(moving: bool, delta: float) -> int`.
+- [x] Add animated pixel water.
+- [x] Add `CanvasModulate`, warm/cool `PointLight2D` nodes and ambient motes.
+- [x] Replace the prototype label with compact health, area and control panels.
+- [x] Enable pixel snapping and document recursive clone/update commands.
 
-- [ ] Change the visual node to `Sprite2D` with `hframes = 4` and `vframes = 7`.
-- [ ] Load the Ninja Adventure player and shadow textures at runtime, preserving original SVG fallbacks.
-- [ ] Map columns Down=0, Up=1, Left=2 and Right=3.
-- [ ] Keep idle on row 0 and loop rows 0–3 at six frames per second while moving.
-- [ ] Preserve eight-direction velocity normalization, collision and Camera2D.
-- [ ] Run contract tests.
+## Task 7: Final remote verification
 
-### Task 4: Replace color tiles with the open floor atlas
+- [x] Run 13 Python unit tests.
+- [x] Run the repository contract validator.
+- [x] Compile Python validation tools.
+- [x] Import and parse the project with official Godot 4.6.3.
+- [x] Smoke-run the main scene for eight frames.
+- [x] Make CI fail on Godot `SCRIPT ERROR` and runtime `ERROR:` output.
+- [x] Confirm runtime files remain 2D-only and third-party paths are registered.
+- [x] Create draft PR #4.
 
-**Files:**
-- Modify: `scripts/world/prototype_world.gd`
-- Create: `scripts/world/open_atlas_regions.gd`
-- Test: `tests/test_validate_project.py`
+## Remaining manual review
 
-**Interfaces:**
-- Consumes: `OpenAssetLibrary.FLOOR_ATLAS`.
-- Produces: named atlas coordinates for grass variants, path, soil and stone.
-
-- [ ] Define explicit 16×16 atlas coordinates and map them to the five ground types.
-- [ ] Build a TileSetAtlasSource from the external floor texture and scale the TileMapLayer by 2.
-- [ ] Add deterministic grass variation without changing collision or map layout.
-- [ ] Keep the generated-color fallback tileset for clones without submodules.
-- [ ] Run tests and repository validation.
-
-### Task 5: Replace placeholder props with village atlas slices
-
-**Files:**
-- Modify: `scenes/world/prototype_world.tscn`
-- Modify: `scripts/world/prototype_world.gd`
-- Test: `tests/test_validate_project.py`
-
-**Interfaces:**
-- Consumes: `OpenAssetLibrary.VILLAGE_ATLAS` and region constants from `OpenAtlasRegions`.
-- Produces: `_spawn_atlas_prop(name: String, region: Rect2i, position: Vector2, scale_factor: float, collision_size: Vector2) -> Node2D`.
-
-- [ ] Remove the fixed SVG house/tree/rock scene nodes.
-- [ ] Spawn a large house, small house, several tree clusters, rocks and fences from atlas regions.
-- [ ] Attach simplified StaticBody2D collisions only to solid props.
-- [ ] Preserve Y sorting and use SVG props when the village atlas is unavailable.
-- [ ] Add an idle pig sprite from the open character sheet as the enemy placeholder.
-- [ ] Run tests.
-
-### Task 6: Add water, lighting, particles and polished HUD
-
-**Files:**
-- Create: `scripts/world/water_surface.gd`
-- Create: `scripts/world/floating_motes.gd`
-- Modify: `scenes/world/prototype_world.tscn`
-- Modify: `README.md`
-- Test: `tests/test_validate_project.py`
-
-**Interfaces:**
-- Produces: animated `_draw()` water surface and deterministic ambient motes.
-
-- [ ] Draw the river with layered pixel bands and moving sine highlights.
-- [ ] Add CanvasModulate and two PointLight2D nodes using gradient textures.
-- [ ] Add subtle floating particles around the house and pickup area.
-- [ ] Replace the long prototype label with compact health, area and controls panels.
-- [ ] Document recursive clone and submodule update commands.
-- [ ] Run unit tests, validator and Python compile checks.
-
-### Task 7: Final remote verification
-
-**Files:**
-- Modify only if verification finds defects.
-
-- [ ] Confirm all changed runtime files remain 2D-only.
-- [ ] Confirm GitHub Actions checks out the submodule and passes all tests.
-- [ ] Confirm exact third-party paths are registered.
-- [ ] Confirm the branch diff contains no accidental source-project scripts outside the gitlink.
-- [ ] Create a draft PR and record the remaining Godot interactive-run gate.
+The project imports and starts successfully in official headless Godot. A human visual review on a desktop remains useful for judging atlas region choices, composition, color balance and subjective image quality before merging.
