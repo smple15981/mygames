@@ -29,7 +29,7 @@ func _physics_process(delta: float) -> void:
 
 
 func _configure_visuals() -> void:
-    _using_open_sheet = ResourceLoader.exists(OpenAssetLibrary.PLAYER_SHEET)
+    _using_open_sheet = OpenAssetLibrary.texture_exists(OpenAssetLibrary.PLAYER_SHEET)
     sprite.texture = OpenAssetLibrary.load_texture(
         OpenAssetLibrary.PLAYER_SHEET,
         "res://assets/original/player/player.svg"
