@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from tools.validate_project import validate_repository
+from tools.validate_project import OPEN_ASSET_FILES, validate_repository
 
 
 class ProjectValidatorTests(unittest.TestCase):
@@ -29,8 +29,12 @@ class ProjectValidatorTests(unittest.TestCase):
             )
             errors = validate_repository(root)
         self.assertIn("project.godot must configure a 640x360 viewport", errors)
+        self.assertIn(
+            "project.godot missing contract token: 2d/snap/snap_2d_transforms_to_pixel=true",
+            errors,
+        )
 
-    def test_player_requires_pure_2d_nodes(self) -> None:
+    def test_player_requires_open_sprite_atlas(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             scene = root / "scenes/player/player.tscn"
@@ -38,18 +42,27 @@ class ProjectValidatorTests(unittest.TestCase):
             scene.write_text('[node name="Player" type="CharacterBody3D"]\n', encoding="utf-8")
             errors = validate_repository(root)
         self.assertIn("player scene root must be CharacterBody2D", errors)
-        self.assertIn("player scene must use AnimatedSprite2D", errors)
-        self.assertIn("player scene must include Camera2D", errors)
+        self.assertIn('player scene missing contract token: type="Sprite2D"', errors)
+        self.assertIn("player scene missing contract token: hframes = 4", errors)
+        self.assertIn("player scene missing contract token: vframes = 7", errors)
+        self.assertIn("player scene missing contract token: Camera2D", errors)
 
-    def test_world_requires_tilemap_and_y_sort(self) -> None:
+    def test_world_requires_polished_2d_stack(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             scene = root / "scenes/world/prototype_world.tscn"
             scene.parent.mkdir(parents=True)
             scene.write_text('[node name="World" type="Node2D"]\n', encoding="utf-8")
             errors = validate_repository(root)
-        self.assertIn("world scene must include TileMapLayer", errors)
-        self.assertIn("world entities must enable y sorting", errors)
+        for token in (
+            'type="TileMapLayer"',
+            "y_sort_enabled = true",
+            "CanvasModulate",
+            "WaterSurface",
+            "PointLight2D",
+            "CanvasLayer",
+        ):
+            self.assertIn(f"world scene missing contract token: {token}", errors)
 
     def test_3d_nodes_are_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -85,10 +98,45 @@ class ProjectValidatorTests(unittest.TestCase):
             errors,
         )
 
-    def test_readme_documents_pure_2d_stack(self) -> None:
+    def test_gitmodules_pins_ninja_adventure(self) -> None:
+        repository_root = Path(__file__).resolve().parents[1]
+        gitmodules = (repository_root / ".gitmodules").read_text(encoding="utf-8")
+        self.assertIn("path = vendor/ninja-adventure", gitmodules)
+        self.assertIn("url = https://github.com/pixel-boy/NinjaAdventure.git", gitmodules)
+
+    def test_ci_recursively_checks_out_submodules(self) -> None:
+        repository_root = Path(__file__).resolve().parents[1]
+        workflow = (repository_root / ".github/workflows/validate.yml").read_text(encoding="utf-8")
+        self.assertIn("submodules: recursive", workflow)
+
+    def test_open_art_files_are_checked_out(self) -> None:
+        repository_root = Path(__file__).resolve().parents[1]
+        for relative in OPEN_ASSET_FILES:
+            self.assertTrue((repository_root / relative).is_file(), relative)
+
+    def test_open_asset_loader_has_fallbacks(self) -> None:
+        repository_root = Path(__file__).resolve().parents[1]
+        library = (repository_root / "scripts/assets/open_asset_library.gd").read_text(encoding="utf-8")
+        for phrase in (
+            "class_name OpenAssetLibrary",
+            "const FLOOR_ATLAS",
+            "const VILLAGE_ATLAS",
+            "const PLAYER_SHEET",
+            "func load_texture",
+            "using local fallback",
+        ):
+            self.assertIn(phrase, library)
+
+    def test_readme_documents_open_art_setup(self) -> None:
         repository_root = Path(__file__).resolve().parents[1]
         readme = (repository_root / "README.md").read_text(encoding="utf-8")
-        for phrase in ("Hearthwild 2D", "TileMapLayer", "CharacterBody2D", "纯 2D"):
+        for phrase in (
+            "Hearthwild 2D",
+            "Ninja Adventure",
+            "--recurse-submodules",
+            "640×360",
+            "THIRD_PARTY_NOTICES.md",
+        ):
             self.assertIn(phrase, readme)
         self.assertNotIn("Sprite3D", readme)
 
