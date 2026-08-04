@@ -35,6 +35,12 @@ jobs:
           unzip -q godot.zip
           chmod +x Godot_v4.6.3-stable_linux.x86_64
 
+      - name: Install graphical validation fonts
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends fonts-noto-cjk
+          fc-cache -f
+
       - name: Import and parse Godot project
         shell: bash
         run: |
