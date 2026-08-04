@@ -16,6 +16,22 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Stage pinned runtime art
+        run: |
+          mkdir -p runtime-open-art
+          cp vendor/ninja-adventure/content/map/tileset_floor.png runtime-open-art/tileset_floor.png
+          cp vendor/ninja-adventure/content/map/tileset_village_abandoned.png runtime-open-art/tileset_village_abandoned.png
+          cp vendor/ninja-adventure/content/character/ninja_blue/sprite.png runtime-open-art/ninja_blue.png
+          cp vendor/ninja-adventure/content/character/pig/pig.png runtime-open-art/pig.png
+          cp vendor/ninja-adventure/content/character/Shadow.png runtime-open-art/shadow.png
+
+      - name: Upload pinned runtime art
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-open-art
+          path: runtime-open-art
+          retention-days: 1
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
