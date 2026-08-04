@@ -164,6 +164,16 @@ class ProjectValidatorTests(unittest.TestCase):
         ):
             self.assertIn(phrase, library)
 
+    def test_world_layout_contract_exists(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        path = root / "scripts/world/world_layout_config.gd"
+        self.assertTrue(path.is_file())
+        self.assertTrue((root / "data/world/default_world_layout.tres").is_file())
+        text = path.read_text(encoding="utf-8")
+        self.assertIn("Vector2i(96, 64)", text)
+        self.assertIn("Vector2i(32, 32)", text)
+        self.assertIn("func normalized_to_minimap", text)
+
     def test_readme_documents_bundled_open_art(self) -> None:
         repository_root = Path(__file__).resolve().parents[1]
         readme = (repository_root / "README.md").read_text(encoding="utf-8")
