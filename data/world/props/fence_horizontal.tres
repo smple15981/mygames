@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="WorldPropDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/world_prop_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"fence_horizontal"
+display_name = "横向围栏"
+visual_scale = 2.0
+visual_offset = Vector2(0, -16)
+solid = true
+collision_rects = Array[Rect2]([Rect2(-56, -8, 112, 12)])
+marker_category = 0
