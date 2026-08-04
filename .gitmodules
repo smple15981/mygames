@@ -1,0 +1,4 @@
+[submodule "vendor/ninja-adventure"]
+	path = vendor/ninja-adventure
+	url = https://github.com/pixel-boy/NinjaAdventure.git
+	branch = main
