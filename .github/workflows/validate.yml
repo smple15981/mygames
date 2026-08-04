@@ -56,6 +56,10 @@ jobs:
             echo "Headless gameplay tests timed out."
             exit 1
           fi
+          if grep -E "SCRIPT ERROR:|^ERROR:" godot-tests.log; then
+            echo "Headless gameplay tests reported script/runtime errors."
+            exit 1
+          fi
           exit "$status"
 
       - name: Smoke-run the main scene

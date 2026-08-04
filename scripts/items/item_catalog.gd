@@ -1,4 +1,5 @@
-extends Node
+class_name ItemCatalog
+extends RefCounted
 
 const ITEM_PATHS := {
     &"branch": "res://data/items/branch.tres",
@@ -18,14 +19,10 @@ const ITEM_PATHS := {
     &"simple_bandage": "res://data/items/simple_bandage.tres",
 }
 
-var _items: Dictionary = {}
+static var _items: Dictionary = {}
 
 
-func _ready() -> void:
-    _ensure_loaded()
-
-
-func _ensure_loaded() -> void:
+static func _ensure_loaded() -> void:
     if _items.size() == ITEM_PATHS.size():
         return
     _items.clear()
@@ -37,17 +34,17 @@ func _ensure_loaded() -> void:
         _items[item_id] = definition
 
 
-func get_item(item_id: StringName) -> ItemDefinition:
+static func get_item(item_id: StringName) -> ItemDefinition:
     _ensure_loaded()
     return _items.get(item_id) as ItemDefinition
 
 
-func has_item(item_id: StringName) -> bool:
+static func has_item(item_id: StringName) -> bool:
     _ensure_loaded()
     return _items.has(item_id)
 
 
-func all_items() -> Array[ItemDefinition]:
+static func all_items() -> Array[ItemDefinition]:
     _ensure_loaded()
     var values: Array[ItemDefinition] = []
     for definition in _items.values():

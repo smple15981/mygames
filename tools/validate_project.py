@@ -130,12 +130,13 @@ def validate_repository(root: Path) -> list[str]:
                 "textures/canvas_textures/default_texture_filter=0",
                 "2d/snap/snap_2d_transforms_to_pixel=true",
                 "2d/snap/snap_2d_vertices_to_pixel=true",
-                'ItemCatalog="*res://scripts/items/item_catalog.gd"',
                 "inventory={",
                 "quick_slot_5={",
             ),
             "project.godot",
         )
+        if 'ItemCatalog="*res://scripts/items/item_catalog.gd"' in project_text:
+            errors.append("project.godot must not expose ItemCatalog only as an autoload")
 
     player_scene = root / "scenes/player/player.tscn"
     if player_scene.is_file():
@@ -209,6 +210,21 @@ def validate_repository(root: Path) -> list[str]:
                 "frame_coords",
             ),
             "player_controller.gd",
+        )
+
+    catalog_path = root / "scripts/items/item_catalog.gd"
+    if catalog_path.is_file():
+        _require_tokens(
+            errors,
+            _read_text(catalog_path),
+            (
+                "class_name ItemCatalog",
+                "static func get_item",
+                "static func has_item",
+                "static func all_items",
+                'res://data/items/wooden_sword.tres',
+            ),
+            "item_catalog.gd",
         )
 
     library_path = root / "scripts/assets/open_asset_library.gd"
