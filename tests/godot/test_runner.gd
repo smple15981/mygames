@@ -6,6 +6,7 @@ const SUITES := [
     preload("res://tests/godot/suites/test_crafting_service.gd"),
     preload("res://tests/godot/suites/test_inventory_ui.gd"),
     preload("res://tests/godot/suites/test_world_layout_config.gd"),
+    preload("res://tests/godot/suites/test_player_stats.gd"),
 ]
 
 
