@@ -69,6 +69,33 @@ GAMEPLAY_FOUNDATION_FILES = (
     "data/recipes/simple_bandage.tres",
 )
 
+WORLD_ENHANCEMENT_FILES = (
+    "scripts/world/world_layout_config.gd",
+    "data/world/default_world_layout.tres",
+    "scripts/player/player_stats.gd",
+    "scripts/ui/stats_hud.gd",
+    "scenes/ui/stats_hud.tscn",
+    "scripts/player/camera_rig.gd",
+    "scripts/core/pause_coordinator.gd",
+    "scripts/input/game_input_router.gd",
+    "scripts/world/world_prop_definition.gd",
+    "scripts/world/world_collision_registry.gd",
+    "scripts/world/world_prop_factory.gd",
+    "scripts/world/world_layout.gd",
+    "data/world/props/farmhouse.tres",
+    "data/world/props/workshop.tres",
+    "data/world/props/tree_small.tres",
+    "data/world/props/tree_cluster.tres",
+    "data/world/props/rock_cluster.tres",
+    "data/world/props/fence_horizontal.tres",
+    "tests/godot/suites/test_world_layout_config.gd",
+    "tests/godot/suites/test_player_stats.gd",
+    "tests/godot/suites/test_camera_rig.gd",
+    "tests/godot/suites/test_game_input_router.gd",
+    "tests/godot/suites/test_world_collisions.gd",
+    "tests/godot/suites/test_world_integration.gd",
+)
+
 OPEN_ASSET_FILES = (
     "assets/third_party/ninja-adventure/tileset_floor.png",
     "assets/third_party/ninja-adventure/tileset_village_abandoned.png",
@@ -108,7 +135,7 @@ def validate_repository(root: Path) -> list[str]:
     root = root.resolve()
     errors: list[str] = []
 
-    for relative in REQUIRED_FILES + GAMEPLAY_FOUNDATION_FILES:
+    for relative in REQUIRED_FILES + GAMEPLAY_FOUNDATION_FILES + WORLD_ENHANCEMENT_FILES:
         if not (root / relative).is_file():
             errors.append(f"missing required file: {relative}")
 
@@ -153,6 +180,8 @@ def validate_repository(root: Path) -> list[str]:
                 "Camera2D",
                 "scripts/inventory/inventory_model.gd",
                 "scripts/player/item_user.gd",
+                "scripts/player/player_stats.gd",
+                "scripts/player/camera_rig.gd",
                 'NodePath("../Inventory")',
             ),
             "player scene",
@@ -167,7 +196,10 @@ def validate_repository(root: Path) -> list[str]:
                 'type="TileMapLayer"',
                 "y_sort_enabled = true",
                 "CanvasModulate",
-                "WaterSurface",
+                "WorldLayout",
+                "WorldCollisionRegistry",
+                "PauseCoordinator",
+                "GameInputRouter",
                 "PointLight2D",
                 "CanvasLayer",
                 "scenes/ui/hotbar_ui.tscn",
@@ -205,6 +237,7 @@ def validate_repository(root: Path) -> list[str]:
                 "OpenAssetLibrary.SHADOW_TEXTURE",
                 "func aim_direction",
                 "item_user.request_use",
+                "func set_gameplay_input_blocked",
                 "func _direction_column",
                 "func _animation_row",
                 "frame_coords",
@@ -264,12 +297,30 @@ def validate_repository(root: Path) -> list[str]:
             "open_atlas_regions.gd",
         )
 
-    builder_path = root / "scripts/world/prototype_world.gd"
-    if builder_path.is_file():
+    composition_path = root / "scripts/world/prototype_world.gd"
+    if composition_path.is_file():
         _require_tokens(
             errors,
-            _read_text(builder_path),
+            _read_text(composition_path),
             (
+                "world_layout.build()",
+                "world_layout.spawn_position()",
+                "world_layout.recover_player_position",
+                "camera_rig.configure_world",
+                "input_router.bind",
+                "hotbar_ui.bind(player_inventory)",
+                "inventory_ui.bind(player_inventory)",
+            ),
+            "prototype_world.gd",
+        )
+
+    layout_path = root / "scripts/world/world_layout.gd"
+    if layout_path.is_file():
+        _require_tokens(
+            errors,
+            _read_text(layout_path),
+            (
+                "class_name WorldLayout",
                 "TileSetAtlasSource",
                 "OpenAssetLibrary.FLOOR_ATLAS",
                 "OpenAssetLibrary.VILLAGE_ATLAS",
@@ -277,10 +328,13 @@ def validate_repository(root: Path) -> list[str]:
                 "ground.set_cell",
                 "_build_fallback_props",
                 "assets/original/world/house.svg",
-                "hotbar_ui.bind(player_inventory)",
-                "inventory_ui.bind(player_inventory)",
+                "WorldPropFactory.spawn_atlas_prop",
+                "func boundary_cells",
+                "func validate_required_routes",
+                "func recover_player_position",
+                "_build_river_collisions",
             ),
-            "prototype_world.gd",
+            "world_layout.gd",
         )
 
     workflow_path = root / ".github/workflows/validate.yml"
@@ -343,7 +397,7 @@ def main() -> int:
         for error in errors:
             print(f"ERROR: {error}")
         return 1
-    print("Hearthwild gameplay-foundation 2D project validation passed.")
+    print("Hearthwild world-enhancement 2D project validation passed.")
     return 0
 
 
