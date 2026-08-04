@@ -5,7 +5,6 @@ import re
 from pathlib import Path
 
 REQUIRED_FILES = (
-    ".gitmodules",
     "project.godot",
     "scenes/bootstrap/main.tscn",
     "scenes/world/prototype_world.tscn",
@@ -28,11 +27,11 @@ REQUIRED_FILES = (
 )
 
 OPEN_ASSET_FILES = (
-    "vendor/ninja-adventure/content/map/tileset_floor.png",
-    "vendor/ninja-adventure/content/map/tileset_village_abandoned.png",
-    "vendor/ninja-adventure/content/character/ninja_blue/sprite.png",
-    "vendor/ninja-adventure/content/character/pig/pig.png",
-    "vendor/ninja-adventure/content/character/Shadow.png",
+    "assets/third_party/ninja-adventure/tileset_floor.png",
+    "assets/third_party/ninja-adventure/tileset_village_abandoned.png",
+    "assets/third_party/ninja-adventure/ninja_blue.png",
+    "assets/third_party/ninja-adventure/pig.png",
+    "assets/third_party/ninja-adventure/shadow.png",
 )
 
 EXT_RESOURCE_PATTERN = re.compile(r'path="res://([^"\n]+)"')
@@ -69,6 +68,10 @@ def validate_repository(root: Path) -> list[str]:
     for relative in REQUIRED_FILES:
         if not (root / relative).is_file():
             errors.append(f"missing required file: {relative}")
+
+    for relative in OPEN_ASSET_FILES:
+        if not (root / relative).is_file():
+            errors.append(f"missing bundled open asset: {relative}")
 
     project_path = root / "project.godot"
     if project_path.is_file():
@@ -134,20 +137,24 @@ def validate_repository(root: Path) -> list[str]:
 
     library_path = root / "scripts/assets/open_asset_library.gd"
     if library_path.is_file():
+        library_text = _read_text(library_path)
         _require_tokens(
             errors,
-            _read_text(library_path),
+            library_text,
             (
                 "class_name OpenAssetLibrary",
+                "res://assets/third_party/ninja-adventure",
                 "const FLOOR_ATLAS",
                 "const VILLAGE_ATLAS",
                 "const PLAYER_SHEET",
                 "const PIG_SHEET",
                 "func load_texture",
-                "git submodule update --init --recursive",
+                "using local fallback",
             ),
             "open_asset_library.gd",
         )
+        if "res://vendor/ninja-adventure" in library_text:
+            errors.append("open_asset_library.gd must not depend on the vendor submodule")
 
     atlas_path = root / "scripts/world/open_atlas_regions.gd"
     if atlas_path.is_file():
@@ -182,24 +189,13 @@ def validate_repository(root: Path) -> list[str]:
             "prototype_world.gd",
         )
 
-    gitmodules_path = root / ".gitmodules"
-    if gitmodules_path.is_file():
-        _require_tokens(
-            errors,
-            _read_text(gitmodules_path),
-            (
-                "path = vendor/ninja-adventure",
-                "url = https://github.com/pixel-boy/NinjaAdventure.git",
-            ),
-            ".gitmodules",
-        )
-        for relative in OPEN_ASSET_FILES:
-            if not (root / relative).is_file():
-                errors.append(f"missing checked-out open asset: {relative}")
-
     workflow_path = root / ".github/workflows/validate.yml"
-    if workflow_path.is_file() and "submodules: recursive" not in _read_text(workflow_path):
-        errors.append("validation workflow must recursively check out submodules")
+    if workflow_path.is_file():
+        workflow_text = _read_text(workflow_path)
+        if "submodules: recursive" in workflow_text:
+            errors.append("validation workflow must prove a normal checkout works without submodules")
+        if "Upload pinned runtime art" in workflow_text:
+            errors.append("validation workflow must not inject runtime art before testing")
 
     scan_paths = [project_path]
     if (root / "scenes").is_dir():
@@ -251,7 +247,7 @@ def main() -> int:
         for error in errors:
             print(f"ERROR: {error}")
         return 1
-    print("Hearthwild open-art 2D project validation passed.")
+    print("Hearthwild bundled-open-art 2D project validation passed.")
     return 0
 
 

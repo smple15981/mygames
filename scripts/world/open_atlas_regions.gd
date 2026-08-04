@@ -3,24 +3,24 @@ extends RefCounted
 
 const SOURCE_TILE_SIZE := Vector2i(16, 16)
 
-# Ninja Adventure floor atlas coordinates. Each coordinate addresses one 16×16 tile.
+# Compact runtime floor atlas. Tiles are copied from the pinned Ninja Adventure pack.
 const GRASS_TILES: Array[Vector2i] = [
-    Vector2i(1, 7),
-    Vector2i(2, 7),
-    Vector2i(3, 7),
-    Vector2i(4, 7),
+    Vector2i(0, 0),
+    Vector2i(1, 0),
+    Vector2i(2, 0),
+    Vector2i(3, 0),
 ]
-const PATH_TILE := Vector2i(6, 9)
-const SOIL_TILE := Vector2i(8, 9)
-const STONE_TILE := Vector2i(13, 14)
+const PATH_TILE := Vector2i(4, 0)
+const SOIL_TILE := Vector2i(5, 0)
+const STONE_TILE := Vector2i(6, 0)
 
-# Ninja Adventure abandoned-village atlas regions (pixel coordinates).
-const TREE_CLUSTER := Rect2i(0, 64, 64, 64)
-const TREE_SMALL := Rect2i(64, 64, 32, 48)
-const ROCK_CLUSTER := Rect2i(64, 16, 48, 32)
-const HOUSE_LARGE := Rect2i(176, 96, 80, 96)
-const HOUSE_SMALL := Rect2i(256, 112, 64, 80)
-const FENCE_STRIP := Rect2i(256, 160, 64, 32)
+# Compact runtime village atlas regions (pixel coordinates).
+const TREE_CLUSTER := Rect2i(0, 0, 64, 64)
+const TREE_SMALL := Rect2i(64, 0, 32, 48)
+const ROCK_CLUSTER := Rect2i(96, 0, 48, 32)
+const HOUSE_LARGE := Rect2i(0, 64, 80, 96)
+const HOUSE_SMALL := Rect2i(80, 64, 64, 80)
+const FENCE_STRIP := Rect2i(144, 64, 64, 32)
 
 
 static func all_floor_tiles() -> Array[Vector2i]:

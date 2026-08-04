@@ -12,23 +12,17 @@ Hearthwild 2D 是一个使用 **Godot 4.x + GDScript** 开发的原创俯视角�
 - 统一风格的房屋、树群、岩石、围栏和小动物
 - 动态像素水面、环境粒子、局部暖光与拾取物冷光
 - 紧凑的生命值、区域名和操作提示 HUD
-- 原创 SVG 降级素材：即使未初始化 submodule，项目仍会给出明确提示并使用占位资源
+- 原创 SVG 仅在运行时图片损坏时作为最后降级资源
 
 当前阶段重点是移动和画面表现。战斗、背包、制作、种植逻辑、敌人 AI、存档和联机尚未实现。
 
 ## 获取项目
 
-项目使用 Git submodule 固定开源美术资源。推荐递归克隆：
+运行时使用的开源图片已经直接打包进主仓库，**无需初始化 submodule**。GitHub ZIP、普通克隆和普通拉取都应显示真实像素美术：
 
 ```bash
-git clone --recurse-submodules https://github.com/smple15981/mygames.git
+git clone https://github.com/smple15981/mygames.git
 cd mygames
-```
-
-已经普通克隆过仓库时，执行：
-
-```bash
-git submodule update --init --recursive
 ```
 
 然后：
@@ -36,6 +30,8 @@ git submodule update --init --recursive
 1. 安装 Godot 4.3 或更新的 Godot 4.x。
 2. 在 Godot 项目管理器中导入仓库根目录的 `project.godot`。
 3. 运行主场景。
+
+从旧版本更新后，建议关闭 Godot，删除项目根目录下的 `.godot` 缓存目录，再重新导入项目，确保旧占位纹理不会留在导入缓存中。
 
 ## 操作
 
@@ -49,15 +45,19 @@ git submodule update --init --recursive
 
 ## 开源美术
 
-主美术来源是 **Ninja Adventure Asset Pack**，通过 `vendor/ninja-adventure` submodule 固定版本。项目当前只读取其中的地表、村庄道具、玩家、小动物和阴影图片，不执行上游游戏逻辑。
+主美术来源是 **Ninja Adventure Asset Pack**。项目把实际需要的地表、村庄道具、玩家、小动物和阴影图片以紧凑运行时图集放在：
+
+```text
+assets/third_party/ninja-adventure/
+```
 
 同时保留：
 
 - Kenney CC0 粒子图片，用于拾取物和局部灯光
 - Tabler Icons MIT 图标，用于 HUD
-- `assets/original/` 下的原创降级素材
+- `assets/original/` 下的原创紧急降级素材
 
-准确来源、固定提交、实际消费路径和许可证记录见 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)。
+准确来源、固定提交、图集修改方式、实际消费路径和许可证记录见 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)。
 
 ## 验证
 
@@ -67,23 +67,14 @@ python tools/validate_project.py .
 python -m compileall -q tools tests
 ```
 
-验证会检查：
-
-- 640×360 与像素对齐设置
-- 纯 2D 组件和禁止遗留的 3D 节点
-- 玩家 4×7 图集契约
-- TileMapLayer、动态水体、灯光和 HUD
-- Ninja Adventure submodule 与实际素材路径
-- 场景引用和所有第三方素材登记
+GitHub Actions 使用普通 checkout，不拉取 submodule，并继续执行官方 Godot 无头导入和主场景启动检查。这用于证明普通下载本身就包含所需美术。
 
 ## 目录
 
 ```text
 assets/
-├── original/       原创降级像素素材
-└── third_party/    直接进入仓库的开源素材
-vendor/
-└── ninja-adventure/ 固定提交的 CC0 主美术 submodule
+├── original/       原创紧急降级素材
+└── third_party/    直接进入仓库的开源运行时素材
 scenes/
 ├── bootstrap/      程序入口
 ├── player/         玩家、镜头与图集显示

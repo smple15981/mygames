@@ -98,21 +98,22 @@ class ProjectValidatorTests(unittest.TestCase):
             errors,
         )
 
-    def test_gitmodules_pins_ninja_adventure(self) -> None:
-        repository_root = Path(__file__).resolve().parents[1]
-        gitmodules = (repository_root / ".gitmodules").read_text(encoding="utf-8")
-        self.assertIn("path = vendor/ninja-adventure", gitmodules)
-        self.assertIn("url = https://github.com/pixel-boy/NinjaAdventure.git", gitmodules)
-
-    def test_ci_recursively_checks_out_submodules(self) -> None:
-        repository_root = Path(__file__).resolve().parents[1]
-        workflow = (repository_root / ".github/workflows/validate.yml").read_text(encoding="utf-8")
-        self.assertIn("submodules: recursive", workflow)
-
-    def test_open_art_files_are_checked_out(self) -> None:
+    def test_runtime_art_is_bundled_in_normal_checkout(self) -> None:
         repository_root = Path(__file__).resolve().parents[1]
         for relative in OPEN_ASSET_FILES:
             self.assertTrue((repository_root / relative).is_file(), relative)
+
+    def test_ci_does_not_require_submodules_for_runtime(self) -> None:
+        repository_root = Path(__file__).resolve().parents[1]
+        workflow = (repository_root / ".github/workflows/validate.yml").read_text(encoding="utf-8")
+        self.assertNotIn("submodules: recursive", workflow)
+        self.assertNotIn("Upload pinned runtime art", workflow)
+
+    def test_runtime_loader_does_not_depend_on_vendor_project(self) -> None:
+        repository_root = Path(__file__).resolve().parents[1]
+        library = (repository_root / "scripts/assets/open_asset_library.gd").read_text(encoding="utf-8")
+        self.assertIn("res://assets/third_party/ninja-adventure", library)
+        self.assertNotIn("res://vendor/ninja-adventure", library)
 
     def test_open_asset_loader_has_fallbacks(self) -> None:
         repository_root = Path(__file__).resolve().parents[1]
@@ -127,17 +128,18 @@ class ProjectValidatorTests(unittest.TestCase):
         ):
             self.assertIn(phrase, library)
 
-    def test_readme_documents_open_art_setup(self) -> None:
+    def test_readme_documents_bundled_open_art(self) -> None:
         repository_root = Path(__file__).resolve().parents[1]
         readme = (repository_root / "README.md").read_text(encoding="utf-8")
         for phrase in (
             "Hearthwild 2D",
             "Ninja Adventure",
-            "--recurse-submodules",
+            "无需初始化 submodule",
             "640×360",
             "THIRD_PARTY_NOTICES.md",
         ):
             self.assertIn(phrase, readme)
+        self.assertNotIn("--recurse-submodules", readme)
         self.assertNotIn("Sprite3D", readme)
 
 

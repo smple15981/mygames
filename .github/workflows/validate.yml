@@ -11,10 +11,8 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository and open assets
+      - name: Check out repository
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
       - name: Set up Python
         uses: actions/setup-python@v5
