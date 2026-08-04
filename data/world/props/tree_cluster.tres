@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="WorldPropDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/world_prop_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"tree_cluster"
+display_name = "树丛"
+visual_scale = 2.0
+visual_offset = Vector2(0, -72)
+solid = true
+collision_rects = Array[Rect2]([Rect2(-28, -16, 20, 16), Rect2(8, -16, 20, 16)])
+marker_category = 0
