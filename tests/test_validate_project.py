@@ -4,7 +4,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from tools.validate_project import OPEN_ASSET_FILES, validate_repository
+from tools.validate_project import (
+    GAMEPLAY_FOUNDATION_FILES,
+    OPEN_ASSET_FILES,
+    validate_repository,
+)
 
 
 class ProjectValidatorTests(unittest.TestCase):
@@ -103,6 +107,11 @@ class ProjectValidatorTests(unittest.TestCase):
         for relative in OPEN_ASSET_FILES:
             self.assertTrue((repository_root / relative).is_file(), relative)
 
+    def test_gameplay_foundation_files_exist(self) -> None:
+        repository_root = Path(__file__).resolve().parents[1]
+        for relative in GAMEPLAY_FOUNDATION_FILES:
+            self.assertTrue((repository_root / relative).is_file(), relative)
+
     def test_ci_does_not_require_submodules_for_runtime(self) -> None:
         repository_root = Path(__file__).resolve().parents[1]
         workflow = (repository_root / ".github/workflows/validate.yml").read_text(encoding="utf-8")
@@ -114,6 +123,19 @@ class ProjectValidatorTests(unittest.TestCase):
         workflow = (root / ".github/workflows/validate.yml").read_text(encoding="utf-8")
         self.assertIn("--script res://tests/godot/test_runner.gd", workflow)
         self.assertTrue((root / "tests/godot/test_runner.gd").is_file())
+
+    def test_inventory_ui_contract_exists(self) -> None:
+        repository_root = Path(__file__).resolve().parents[1]
+        for relative in (
+            "scenes/ui/hotbar_ui.tscn",
+            "scenes/ui/inventory_ui.tscn",
+            "scripts/ui/hotbar_ui.gd",
+            "scripts/ui/inventory_ui.gd",
+        ):
+            self.assertTrue((repository_root / relative).is_file(), relative)
+        inventory_scene = (repository_root / "scenes/ui/inventory_ui.tscn").read_text(encoding="utf-8")
+        self.assertIn("columns = 5", inventory_scene)
+        self.assertIn("RecipeList", inventory_scene)
 
     def test_runtime_loader_does_not_depend_on_vendor_project(self) -> None:
         repository_root = Path(__file__).resolve().parents[1]

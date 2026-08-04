@@ -18,6 +18,8 @@ enum GroundTile {
 
 @onready var ground: TileMapLayer = $Ground
 @onready var entities: Node2D = $Entities
+@onready var hotbar_ui: HotbarUI = $HUD/HotbarUI
+@onready var inventory_ui: InventoryUI = $HUD/InventoryUI
 
 var _using_open_floor := false
 var _open_floor_coordinates: Dictionary = {}
@@ -28,6 +30,13 @@ func _ready() -> void:
     _paint_map()
     _build_props()
     _build_world_collisions()
+    _bind_player_ui()
+
+
+func _bind_player_ui() -> void:
+    var player_inventory: InventoryModel = $Entities/Player/Inventory
+    hotbar_ui.bind(player_inventory)
+    inventory_ui.bind(player_inventory)
 
 
 func _configure_runtime_tileset() -> void:

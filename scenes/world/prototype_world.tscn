@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/prototype_world.gd" id="1_world_script"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_player"]
@@ -7,6 +7,8 @@
 [ext_resource type="Texture2D" path="res://assets/third_party/kenney/starter-kit-3d-platformer/particle.png" id="5_particle"]
 [ext_resource type="Texture2D" path="res://assets/third_party/tabler/tabler-icons/heart.svg" id="6_heart"]
 [ext_resource type="Texture2D" path="res://assets/third_party/tabler/tabler-icons/sword.svg" id="7_sword"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hotbar_ui.tscn" id="8_hotbar"]
+[ext_resource type="PackedScene" path="res://scenes/ui/inventory_ui.tscn" id="9_inventory"]
 
 [sub_resource type="StyleBoxFlat" id="Style_status"]
 bg_color = Color(0.035, 0.047, 0.055, 0.9)
@@ -152,9 +154,9 @@ text = "晨露谷地 · 初春"
 
 [node name="HintPanel" type="PanelContainer" parent="HUD"]
 offset_left = 12.0
-offset_top = 310.0
+offset_top = 266.0
 offset_right = 332.0
-offset_bottom = 348.0
+offset_bottom = 304.0
 theme_override_styles/panel = SubResource("Style_hint")
 
 [node name="Margin" type="MarginContainer" parent="HUD/HintPanel"]
@@ -176,5 +178,9 @@ stretch_mode = 5
 [node name="Controls" type="Label" parent="HUD/HintPanel/Margin/Row"]
 theme_override_colors/font_color = Color(0.86, 0.93, 0.91, 1)
 theme_override_font_sizes/font_size = 12
-text = "WASD 移动  ·  E 交互  ·  J 攻击"
+text = "WASD 移动 · 左键使用 · 1-5切换 · Tab背包"
 vertical_alignment = 1
+
+[node name="HotbarUI" parent="HUD" instance=ExtResource("8_hotbar")]
+
+[node name="InventoryUI" parent="HUD" instance=ExtResource("9_inventory")]
