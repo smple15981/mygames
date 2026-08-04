@@ -1,12 +1,12 @@
 class_name OpenAssetLibrary
 extends RefCounted
 
-const FLOOR_ATLAS := "res://vendor/ninja-adventure/content/map/tileset_floor.png"
-const VILLAGE_ATLAS := "res://vendor/ninja-adventure/content/map/tileset_village_abandoned.png"
-const PLAYER_SHEET := "res://vendor/ninja-adventure/content/character/ninja_blue/sprite.png"
-const PIG_SHEET := "res://vendor/ninja-adventure/content/character/pig/pig.png"
-const SHADOW_TEXTURE := "res://vendor/ninja-adventure/content/character/Shadow.png"
-const VENDOR_PREFIX := "res://vendor/"
+const ASSET_ROOT := "res://assets/third_party/ninja-adventure"
+const FLOOR_ATLAS := ASSET_ROOT + "/tileset_floor.png"
+const VILLAGE_ATLAS := ASSET_ROOT + "/tileset_village_abandoned.png"
+const PLAYER_SHEET := ASSET_ROOT + "/ninja_blue.png"
+const PIG_SHEET := ASSET_ROOT + "/pig.png"
+const SHADOW_TEXTURE := ASSET_ROOT + "/shadow.png"
 
 static var _warned_paths: Dictionary = {}
 static var _texture_cache: Dictionary = {}
@@ -17,8 +17,6 @@ static func has_open_assets() -> bool:
 
 
 static func texture_exists(path: String) -> bool:
-    if path.begins_with(VENDOR_PREFIX):
-        return FileAccess.file_exists(path)
     return ResourceLoader.exists(path) or FileAccess.file_exists(path)
 
 
@@ -40,9 +38,7 @@ static func _load_texture_resource(path: String) -> Texture2D:
         return _texture_cache[path] as Texture2D
 
     var texture: Texture2D = null
-    if path.begins_with(VENDOR_PREFIX):
-        texture = _load_raw_image(path)
-    elif ResourceLoader.exists(path):
+    if ResourceLoader.exists(path):
         texture = ResourceLoader.load(path) as Texture2D
     elif FileAccess.file_exists(path):
         texture = _load_raw_image(path)
@@ -58,7 +54,7 @@ static func _load_raw_image(path: String) -> Texture2D:
     var image := Image.new()
     var load_error := image.load(ProjectSettings.globalize_path(path))
     if load_error != OK:
-        push_warning("Failed to decode open image %s (error %s)." % [path, load_error])
+        push_warning("Failed to decode bundled open image %s (error %s)." % [path, load_error])
         return null
     return ImageTexture.create_from_image(image)
 
@@ -68,6 +64,6 @@ static func _warn_once(path: String) -> void:
         return
     _warned_paths[path] = true
     push_warning(
-        "Open asset is unavailable: %s. Run `git submodule update --init --recursive`; using local fallback when available."
+        "Bundled open asset is unavailable: %s; using local fallback when available."
         % path
     )
