@@ -65,7 +65,12 @@ func _configure_open_tileset(texture: Texture2D) -> bool:
 
 
 func _configure_fallback_tileset() -> void:
-    var image := Image.create(SOURCE_TILE_SIZE.x * 5, SOURCE_TILE_SIZE.y, false, Image.FORMAT_RGBA8)
+    var image := Image.create(
+        SOURCE_TILE_SIZE.x * 5,
+        SOURCE_TILE_SIZE.y,
+        false,
+        Image.FORMAT_RGBA8
+    )
     var colors := [
         Color("#4f8a4b"),
         Color("#a77a4e"),
@@ -111,19 +116,22 @@ func _paint_map() -> void:
             _set_ground_cell(Vector2i(x, y), tile)
 
 
-func _set_ground_cell(cell: Vector2i, tile: GroundTile) -> void:
+func _set_ground_cell(cell: Vector2i, tile: int) -> void:
     if _using_open_floor:
-        var coordinate := _open_coordinate_for(tile, cell)
-        ground.set_cell(cell, OPEN_SOURCE_ID, coordinate, 0)
+        ground.set_cell(cell, OPEN_SOURCE_ID, _open_coordinate_for(tile, cell), 0)
         return
-    ground.set_cell(cell, FALLBACK_SOURCE_ID, Vector2i(int(tile), 0), 0)
+    ground.set_cell(cell, FALLBACK_SOURCE_ID, Vector2i(tile, 0), 0)
 
 
-func _open_coordinate_for(tile: GroundTile, cell: Vector2i) -> Vector2i:
+func _open_coordinate_for(tile: int, cell: Vector2i) -> Vector2i:
     if tile == GroundTile.GRASS or tile == GroundTile.WATER:
         var index := abs(cell.x * 31 + cell.y * 17) % OpenAtlasRegions.GRASS_TILES.size()
         return OpenAtlasRegions.GRASS_TILES[index]
-    return _open_floor_coordinates.get(tile, OpenAtlasRegions.GRASS_TILES[0])
+    var coordinate: Vector2i = _open_floor_coordinates.get(
+        tile,
+        OpenAtlasRegions.GRASS_TILES[0]
+    )
+    return coordinate
 
 
 func _build_props() -> void:
@@ -154,12 +162,21 @@ func _build_open_props(texture: Texture2D) -> void:
     )
 
     var trees := [
-        Vector2(100, 220), Vector2(92, 520), Vector2(430, 92),
-        Vector2(770, 230), Vector2(835, 430), Vector2(910, 560),
-        Vector2(1180, 480), Vector2(1200, 680),
+        Vector2(100, 220),
+        Vector2(92, 520),
+        Vector2(430, 92),
+        Vector2(770, 230),
+        Vector2(835, 430),
+        Vector2(910, 560),
+        Vector2(1180, 480),
+        Vector2(1200, 680),
     ]
     for index in trees.size():
-        var region := OpenAtlasRegions.TREE_CLUSTER if index % 3 == 0 else OpenAtlasRegions.TREE_SMALL
+        var region := (
+            OpenAtlasRegions.TREE_CLUSTER
+            if index % 3 == 0
+            else OpenAtlasRegions.TREE_SMALL
+        )
         _spawn_atlas_prop(
             "Tree%02d" % index,
             texture,
@@ -238,21 +255,39 @@ func _spawn_atlas_prop(
 
 func _build_fallback_props() -> void:
     _spawn_fallback_prop(
-        "FarmHouse", "res://assets/original/world/house.svg",
-        Vector2(245, 170), Vector2(0, -40), Vector2(96, 54)
+        "FarmHouse",
+        "res://assets/original/world/house.svg",
+        Vector2(245, 170),
+        Vector2(0, -40),
+        Vector2(96, 54)
     )
-    for entry in [
-        ["TreeA", Vector2(110, 190)],
-        ["TreeB", Vector2(770, 220)],
-        ["TreeC", Vector2(890, 430)],
-    ]:
-        _spawn_fallback_prop(
-            entry[0], "res://assets/original/world/tree.svg",
-            entry[1], Vector2(0, -40), Vector2(30, 22)
-        )
     _spawn_fallback_prop(
-        "RockA", "res://assets/original/world/rock.svg",
-        Vector2(1110, 150), Vector2(0, -12), Vector2(30, 24)
+        "TreeA",
+        "res://assets/original/world/tree.svg",
+        Vector2(110, 190),
+        Vector2(0, -40),
+        Vector2(30, 22)
+    )
+    _spawn_fallback_prop(
+        "TreeB",
+        "res://assets/original/world/tree.svg",
+        Vector2(770, 220),
+        Vector2(0, -40),
+        Vector2(30, 22)
+    )
+    _spawn_fallback_prop(
+        "TreeC",
+        "res://assets/original/world/tree.svg",
+        Vector2(890, 430),
+        Vector2(0, -40),
+        Vector2(30, 22)
+    )
+    _spawn_fallback_prop(
+        "RockA",
+        "res://assets/original/world/rock.svg",
+        Vector2(1110, 150),
+        Vector2(0, -12),
+        Vector2(30, 24)
     )
 
 
@@ -266,6 +301,7 @@ func _spawn_fallback_prop(
     var texture := OpenAssetLibrary.load_texture(texture_path)
     if texture == null:
         return
+
     var body := StaticBody2D.new()
     body.name = node_name
     body.position = world_position
@@ -298,8 +334,8 @@ func _spawn_critter() -> void:
     critter.position = Vector2(850, 330)
     critter.texture = texture
     if using_open_sheet:
-        critter.hframes = 4
-        critter.vframes = 7
+        critter.hframes = 2
+        critter.vframes = 1
         critter.scale = Vector2(2, 2)
         critter.set_script(VisualCritterScript)
     entities.add_child(critter)
