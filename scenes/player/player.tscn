@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player_controller.gd" id="1_controller"]
 [ext_resource type="Texture2D" path="res://assets/original/player/player.svg" id="2_player"]
@@ -7,51 +7,21 @@
 [sub_resource type="RectangleShape2D" id="Shape_player"]
 size = Vector2(16, 12)
 
-[sub_resource type="SpriteFrames" id="Frames_player"]
-animations = [{
-"frames": [{"duration": 1.0, "texture": ExtResource("2_player")}],
-"loop": true,
-"name": &"idle_down",
-"speed": 4.0
-}, {
-"frames": [{"duration": 1.0, "texture": ExtResource("2_player")}],
-"loop": true,
-"name": &"idle_side",
-"speed": 4.0
-}, {
-"frames": [{"duration": 1.0, "texture": ExtResource("2_player")}],
-"loop": true,
-"name": &"idle_up",
-"speed": 4.0
-}, {
-"frames": [{"duration": 1.0, "texture": ExtResource("2_player")}],
-"loop": true,
-"name": &"walk_down",
-"speed": 8.0
-}, {
-"frames": [{"duration": 1.0, "texture": ExtResource("2_player")}],
-"loop": true,
-"name": &"walk_side",
-"speed": 8.0
-}, {
-"frames": [{"duration": 1.0, "texture": ExtResource("2_player")}],
-"loop": true,
-"name": &"walk_up",
-"speed": 8.0
-}]
-
 [node name="Player" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 1
+motion_mode = 1
 script = ExtResource("1_controller")
 
 [node name="Shadow" type="Sprite2D" parent="."]
 texture = ExtResource("3_shadow")
 position = Vector2(0, 16)
-scale = Vector2(1, 1)
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
-sprite_frames = SubResource("Frames_player")
-animation = &"idle_down"
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_player")
 position = Vector2(0, -10)
+hframes = 4
+vframes = 7
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, 11)
