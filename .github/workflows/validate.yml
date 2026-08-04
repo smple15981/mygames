@@ -26,3 +26,16 @@ jobs:
 
       - name: Validate pure 2D Godot repository contract
         run: python tools/validate_project.py .
+
+      - name: Compile Python validation tools
+        run: python -m compileall -q tools tests
+
+      - name: Install official Godot editor
+        run: |
+          curl --fail --location --output godot.zip \
+            https://github.com/godotengine/godot-builds/releases/download/4.6.3-stable/Godot_v4.6.3-stable_linux.x86_64.zip
+          unzip -q godot.zip
+          chmod +x Godot_v4.6.3-stable_linux.x86_64
+
+      - name: Import and parse Godot project
+        run: ./Godot_v4.6.3-stable_linux.x86_64 --headless --path . --import
