@@ -1,11 +1,10 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/prototype_world.gd" id="1_world_script"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_player"]
 [ext_resource type="Script" path="res://scripts/world/water_surface.gd" id="3_water"]
 [ext_resource type="Script" path="res://scripts/world/floating_motes.gd" id="4_motes"]
 [ext_resource type="Texture2D" path="res://assets/third_party/kenney/starter-kit-3d-platformer/particle.png" id="5_particle"]
-[ext_resource type="Texture2D" path="res://assets/third_party/tabler/tabler-icons/heart.svg" id="6_heart"]
 [ext_resource type="Texture2D" path="res://assets/third_party/tabler/tabler-icons/sword.svg" id="7_sword"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hotbar_ui.tscn" id="8_hotbar"]
 [ext_resource type="PackedScene" path="res://scenes/ui/inventory_ui.tscn" id="9_inventory"]
@@ -14,20 +13,8 @@
 [ext_resource type="Script" path="res://scripts/world/world_collision_registry.gd" id="12_registry"]
 [ext_resource type="Script" path="res://scripts/core/pause_coordinator.gd" id="13_pause"]
 [ext_resource type="Script" path="res://scripts/input/game_input_router.gd" id="14_input"]
-
-[sub_resource type="StyleBoxFlat" id="Style_status"]
-bg_color = Color(0.035, 0.047, 0.055, 0.9)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.82, 0.66, 0.38, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
-shadow_color = Color(0, 0, 0, 0.45)
-shadow_size = 4
+[ext_resource type="PackedScene" path="res://scenes/ui/stats_hud.tscn" id="15_stats"]
+[ext_resource type="PackedScene" path="res://scenes/ui/minimap.tscn" id="16_minimap"]
 
 [sub_resource type="StyleBoxFlat" id="Style_hint"]
 bg_color = Color(0.035, 0.047, 0.055, 0.82)
@@ -40,25 +27,6 @@ corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
-
-[sub_resource type="StyleBoxFlat" id="Style_bar_background"]
-bg_color = Color(0.11, 0.12, 0.14, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.02, 0.025, 0.03, 1)
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_right = 2
-corner_radius_bottom_left = 2
-
-[sub_resource type="StyleBoxFlat" id="Style_bar_fill"]
-bg_color = Color(0.78, 0.2, 0.23, 1)
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_right = 2
-corner_radius_bottom_left = 2
 
 [node name="PrototypeWorld" type="Node2D"]
 script = ExtResource("1_world_script")
@@ -81,6 +49,11 @@ script = ExtResource("13_pause")
 
 [node name="GameInputRouter" type="Node" parent="."]
 script = ExtResource("14_input")
+
+[node name="HintTimer" type="Timer" parent="."]
+wait_time = 6.0
+one_shot = true
+autostart = true
 
 [node name="Ground" type="TileMapLayer" parent="."]
 
@@ -129,54 +102,14 @@ color = Color(0.34, 0.78, 1, 1)
 [node name="HUD" type="CanvasLayer" parent="."]
 layer = 10
 
-[node name="StatusPanel" type="PanelContainer" parent="HUD"]
-offset_left = 12.0
-offset_top = 12.0
-offset_right = 244.0
-offset_bottom = 104.0
-theme_override_styles/panel = SubResource("Style_status")
+[node name="StatsHUD" parent="HUD" instance=ExtResource("15_stats")]
 
-[node name="Margin" type="MarginContainer" parent="HUD/StatusPanel"]
-theme_override_constants/margin_left = 10
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 8
-
-[node name="Column" type="VBoxContainer" parent="HUD/StatusPanel/Margin"]
-theme_override_constants/separation = 4
-
-[node name="HealthRow" type="HBoxContainer" parent="HUD/StatusPanel/Margin/Column"]
-theme_override_constants/separation = 7
-
-[node name="Heart" type="TextureRect" parent="HUD/StatusPanel/Margin/Column/HealthRow"]
-custom_minimum_size = Vector2(20, 20)
-texture = ExtResource("6_heart")
-modulate = Color(0.96, 0.32, 0.35, 1)
-expand_mode = 1
-stretch_mode = 5
-
-[node name="HealthText" type="Label" parent="HUD/StatusPanel/Margin/Column/HealthRow"]
-theme_override_colors/font_color = Color(1, 0.88, 0.82, 1)
-theme_override_font_sizes/font_size = 14
-text = "100 / 100"
-vertical_alignment = 1
-
-[node name="HealthBar" type="ProgressBar" parent="HUD/StatusPanel/Margin/Column"]
-custom_minimum_size = Vector2(205, 10)
-value = 82.0
-show_percentage = false
-theme_override_styles/background = SubResource("Style_bar_background")
-theme_override_styles/fill = SubResource("Style_bar_fill")
-
-[node name="AreaName" type="Label" parent="HUD/StatusPanel/Margin/Column"]
-theme_override_colors/font_color = Color(0.91, 0.78, 0.5, 1)
-theme_override_font_sizes/font_size = 13
-text = "晨露谷地 · 初春"
+[node name="MiniMapFrame" parent="HUD" instance=ExtResource("16_minimap")]
 
 [node name="HintPanel" type="PanelContainer" parent="HUD"]
 offset_left = 12.0
 offset_top = 266.0
-offset_right = 332.0
+offset_right = 430.0
 offset_bottom = 304.0
 theme_override_styles/panel = SubResource("Style_hint")
 
@@ -199,7 +132,7 @@ stretch_mode = 5
 [node name="Controls" type="Label" parent="HUD/HintPanel/Margin/Row"]
 theme_override_colors/font_color = Color(0.86, 0.93, 0.91, 1)
 theme_override_font_sizes/font_size = 12
-text = "WASD 移动 · 滚轮缩放 · Ctrl+滚轮切换 · Tab背包"
+text = "WASD移动 · 左键使用 · 滚轮缩放 · Ctrl+滚轮切换 · Tab背包"
 vertical_alignment = 1
 
 [node name="HotbarUI" parent="HUD" instance=ExtResource("8_hotbar")]
