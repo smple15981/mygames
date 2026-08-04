@@ -4,7 +4,7 @@ extends RefCounted
 const FLOOR_ATLAS := "res://vendor/ninja-adventure/content/map/tileset_floor.png"
 const VILLAGE_ATLAS := "res://vendor/ninja-adventure/content/map/tileset_village_abandoned.png"
 const PLAYER_SHEET := "res://vendor/ninja-adventure/content/character/ninja_blue/sprite.png"
-const PIG_SHEET := "res://vendor/ninja-adventure/content/character/pig/sprite.png"
+const PIG_SHEET := "res://vendor/ninja-adventure/content/character/pig/pig.png"
 const SHADOW_TEXTURE := "res://vendor/ninja-adventure/content/character/Shadow.png"
 
 static var _warned_paths: Dictionary = {}
