@@ -15,6 +15,7 @@ const SUITES := [
     preload("res://tests/godot/suites/test_harvestable_resource.gd"),
     preload("res://tests/godot/suites/test_world_pickup.gd"),
     preload("res://tests/godot/suites/test_auto_move_agent.gd"),
+    preload("res://tests/godot/suites/test_mouse_interaction.gd"),
     preload("res://tests/godot/suites/test_world_integration.gd"),
     preload("res://tests/godot/suites/test_minimap.gd"),
 ]
