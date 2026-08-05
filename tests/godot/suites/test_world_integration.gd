@@ -98,6 +98,31 @@ static func run() -> Array[String]:
         "starter materials remain available"
     ))
 
+    var starter_resources := scene_tree.get_nodes_in_group("starter_harvestables")
+    var starter_tree_count := 0
+    var starter_rock_count := 0
+    failures.append(TestAssert.equal(starter_resources.size(), 6, "starter harvestable count"))
+    if player != null:
+        for node in starter_resources:
+            var resource := node as HarvestableResource
+            failures.append(TestAssert.truthy(resource != null, "starter entry is harvestable"))
+            if resource == null:
+                continue
+            var target := resource.get_parent().get_node_or_null("InteractionTarget") as InteractionTarget
+            failures.append(TestAssert.truthy(target != null, "starter harvestable target exists"))
+            if target == null:
+                continue
+            failures.append(TestAssert.truthy(
+                resource.get_parent().global_position.distance_to(player.global_position) <= 256.0,
+                "starter harvestable near spawn"
+            ))
+            if target.kind == InteractionTarget.Kind.HARVEST_TREE:
+                starter_tree_count += 1
+            elif target.kind == InteractionTarget.Kind.HARVEST_ROCK:
+                starter_rock_count += 1
+    failures.append(TestAssert.equal(starter_tree_count, 3, "three starter trees"))
+    failures.append(TestAssert.equal(starter_rock_count, 3, "three starter rocks"))
+
     if player != null:
         var action_requests := [0]
         player.item_user.action_requested.connect(func(_request: ActionRequest): action_requests[0] += 1)
