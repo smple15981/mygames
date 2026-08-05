@@ -14,15 +14,20 @@ const STARTER_STONE_CELLS: Array[Vector2i] = [
 
 @onready var world_layout: WorldLayout = $WorldLayout
 @onready var collision_registry: WorldCollisionRegistry = $WorldCollisionRegistry
+@onready var world_path_grid: WorldPathGrid = $WorldPathGrid
+@onready var interaction_manager: WorldInteractionManager = $WorldInteractionManager
+@onready var cursor_manager: CursorStateManager = $CursorStateManager
 @onready var pause_coordinator: PauseCoordinator = $PauseCoordinator
 @onready var input_router: GameInputRouter = $GameInputRouter
 @onready var entities: Node2D = $Entities
 @onready var player: PlayerController = $Entities/Player
+@onready var mouse_controller: MouseInteractionController = $Entities/Player/MouseInteractionController
 @onready var camera_rig: CameraRig = $Entities/Player/Camera2D
 @onready var hotbar_ui: HotbarUI = $HUD/HotbarUI
 @onready var inventory_ui: InventoryUI = $HUD/InventoryUI
 @onready var stats_hud: StatsHUD = $HUD/StatsHUD
 @onready var minimap: MiniMap = $HUD/MiniMapFrame/Margin/MiniMap
+@onready var action_feedback: ActionFeedback = $HUD/ActionFeedback
 @onready var hint_panel: Control = $HUD/HintPanel
 @onready var hint_timer: Timer = $HintTimer
 
@@ -31,10 +36,13 @@ var _starters_spawned := false
 
 func _ready() -> void:
     world_layout.build()
+    world_path_grid.configure(world_layout.config, collision_registry)
     player.position = world_layout.spawn_position()
     player.position = world_layout.recover_player_position(player.position, Vector2(16, 12))
+    player.set_path_grid(world_path_grid)
     camera_rig.configure_world(world_layout.world_rect())
     _bind_player_ui()
+    _bind_world_interaction()
     _bind_global_input()
     _bind_hint_timer()
     _spawn_starter_pickups()
@@ -63,6 +71,24 @@ func _bind_player_ui() -> void:
         )
 
 
+func _bind_world_interaction() -> void:
+    var player_inventory := player.get_node("Inventory") as InventoryModel
+    mouse_controller.bind(
+        player,
+        player_inventory,
+        world_path_grid,
+        cursor_manager
+    )
+    interaction_manager.bind(
+        player,
+        player_inventory,
+        world_path_grid,
+        mouse_controller,
+        entities,
+        action_feedback
+    )
+
+
 func _bind_global_input() -> void:
     var player_inventory := player.get_node("Inventory") as InventoryModel
     input_router.bind(
@@ -83,6 +109,8 @@ func _bind_hint_timer() -> void:
 
 func _on_inventory_opened(opened: bool) -> void:
     player.set_gameplay_input_blocked(opened)
+    mouse_controller.set_input_blocked(opened)
+    interaction_manager.set_input_blocked(opened)
     hotbar_ui.set_modal_dimmed(opened)
     stats_hud.set_modal_dimmed(opened)
     minimap.set_modal_dimmed(opened)
@@ -106,8 +134,7 @@ func _spawn_starter_pickups() -> void:
             player,
             player_inventory
         )
-        if pickup != null:
-            pickup.add_to_group("starter_pickups")
+        _configure_starter_pickup(pickup)
     for cell in STARTER_STONE_CELLS:
         var pickup := WorldPickupFactory.spawn(
             entities,
@@ -117,8 +144,19 @@ func _spawn_starter_pickups() -> void:
             player,
             player_inventory
         )
-        if pickup != null:
-            pickup.add_to_group("starter_pickups")
+        _configure_starter_pickup(pickup)
+
+
+func _configure_starter_pickup(pickup: WorldPickup) -> void:
+    if pickup == null:
+        return
+    pickup.add_to_group("starter_pickups")
+    if not pickup.pickup_blocked.is_connected(_on_pickup_blocked):
+        pickup.pickup_blocked.connect(_on_pickup_blocked)
+
+
+func _on_pickup_blocked(_item_id: StringName) -> void:
+    action_feedback.show_message("背包已满")
 
 
 func _spawn_critter() -> void:

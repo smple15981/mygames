@@ -52,6 +52,8 @@ func _physics_process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
     if gameplay_input_blocked:
         return
+    if event is InputEventMouseButton:
+        return
     if event.is_action_pressed("attack"):
         item_user.request_use(aim_direction())
         get_viewport().set_input_as_handled()
