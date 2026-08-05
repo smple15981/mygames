@@ -19,8 +19,13 @@ static func run() -> Array[String]:
 
     failures.append(TestAssert.truthy(path.size() > 2, "path exists around blocker"))
     if not path.is_empty():
+        var endpoint := path[path.size() - 1]
         failures.append(TestAssert.truthy(
-            path[path.size() - 1].distance_to(target_rect.get_center()) <= 68.0,
+            not target_rect.has_point(endpoint),
+            "path endpoint stays outside target"
+        ))
+        failures.append(TestAssert.truthy(
+            endpoint.distance_to(target_rect.get_center()) <= 68.0,
             "path ends in interaction range"
         ))
 
@@ -35,6 +40,25 @@ static func run() -> Array[String]:
     failures.append(TestAssert.truthy(
         grid.find_path(Vector2(80, 80), target_rect, 36.0).size() > 0,
         "unregister reopens path"
+    ))
+
+    var overlap_rect := Rect2(320, 192, 24, 24)
+    var overlap_cell := Vector2i(10, 6)
+    registry.register_rect(&"overlap_a", overlap_rect)
+    registry.register_rect(&"overlap_b", overlap_rect)
+    failures.append(TestAssert.truthy(
+        not grid.is_cell_walkable(overlap_cell),
+        "overlapping footprints block cell"
+    ))
+    registry.unregister(&"overlap_a")
+    failures.append(TestAssert.truthy(
+        not grid.is_cell_walkable(overlap_cell),
+        "one remaining footprint keeps cell blocked"
+    ))
+    registry.unregister(&"overlap_b")
+    failures.append(TestAssert.truthy(
+        grid.is_cell_walkable(overlap_cell),
+        "last footprint removal reopens cell"
     ))
 
     failures.append(TestAssert.equal(
