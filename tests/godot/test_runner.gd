@@ -10,6 +10,7 @@ const SUITES := [
     preload("res://tests/godot/suites/test_camera_rig.gd"),
     preload("res://tests/godot/suites/test_game_input_router.gd"),
     preload("res://tests/godot/suites/test_world_collisions.gd"),
+    preload("res://tests/godot/suites/test_world_path_grid.gd"),
     preload("res://tests/godot/suites/test_world_integration.gd"),
     preload("res://tests/godot/suites/test_minimap.gd"),
 ]
