@@ -1,6 +1,10 @@
 class_name WorldCollisionRegistry
 extends Node
 
+signal footprint_registered(id: StringName, rect: Rect2)
+signal footprint_unregistered(id: StringName, rect: Rect2)
+signal footprints_cleared
+
 @export_range(1.0, 128.0, 1.0) var search_step := 16.0
 @export_range(1, 64, 1) var search_rings := 16
 
@@ -27,15 +31,32 @@ func register_rect(id: StringName, rect: Rect2) -> bool:
     if _footprints.has(id):
         return false
     _footprints[id] = rect
+    footprint_registered.emit(id, rect)
     return true
 
 
+func footprint(id: StringName) -> Rect2:
+    return _footprints.get(id, Rect2()) as Rect2
+
+
 func unregister(id: StringName) -> void:
+    if not _footprints.has(id):
+        return
+    var rect := _footprints[id] as Rect2
     _footprints.erase(id)
+    footprint_unregistered.emit(id, rect)
+
+
+func unregister_many(ids: Array[StringName]) -> void:
+    for id in ids:
+        unregister(id)
 
 
 func clear() -> void:
+    if _footprints.is_empty():
+        return
     _footprints.clear()
+    footprints_cleared.emit()
 
 
 func has_footprint(id: StringName) -> bool:
@@ -52,8 +73,8 @@ func footprints() -> Dictionary:
 
 func overlaps_rect(rect: Rect2) -> bool:
     for value in _footprints.values():
-        var footprint := value as Rect2
-        if footprint.intersects(rect, true):
+        var footprint_rect := value as Rect2
+        if footprint_rect.intersects(rect, true):
             return true
     return false
 
@@ -61,8 +82,8 @@ func overlaps_rect(rect: Rect2) -> bool:
 func is_position_safe(position: Vector2, player_size: Vector2) -> bool:
     if player_size.x <= 0.0 or player_size.y <= 0.0:
         return false
-    var footprint := Rect2(position - player_size * 0.5, player_size)
-    return _world_rect.encloses(footprint) and not overlaps_rect(footprint)
+    var player_footprint := Rect2(position - player_size * 0.5, player_size)
+    return _world_rect.encloses(player_footprint) and not overlaps_rect(player_footprint)
 
 
 func find_nearest_safe_position(
