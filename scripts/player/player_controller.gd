@@ -1,21 +1,26 @@
 class_name PlayerController
 extends CharacterBody2D
 
+signal manual_input_started
+
 @export_range(20.0, 400.0, 1.0) var move_speed: float = 120.0
 @export_range(1.0, 12.0, 0.5) var animation_speed: float = 6.0
 
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var shadow: Sprite2D = $Shadow
 @onready var item_user: ItemUser = $ItemUser
+@onready var auto_move_agent: AutoMoveAgent = $AutoMoveAgent
 
 var facing: int = MovementMath.Facing.SOUTH
 var gameplay_input_blocked := false
 var _animation_time := 0.0
 var _using_open_sheet := false
+var _manual_was_active := false
 
 
 func _ready() -> void:
     _configure_visuals()
+    auto_move_agent.bind(self, null)
 
 
 func _physics_process(delta: float) -> void:
@@ -24,7 +29,17 @@ func _physics_process(delta: float) -> void:
         if gameplay_input_blocked
         else Input.get_vector("move_left", "move_right", "move_up", "move_down")
     )
-    var direction := MovementMath.normalized_input(raw_input)
+    var manual_direction := MovementMath.normalized_input(raw_input)
+    var manual_active := not manual_direction.is_zero_approx()
+    if manual_active:
+        if not _manual_was_active:
+            manual_input_started.emit()
+        auto_move_agent.cancel(&"manual_input")
+
+    var direction := manual_direction
+    if not gameplay_input_blocked and not manual_active:
+        direction = auto_move_agent.next_direction(global_position, delta)
+    _manual_was_active = manual_active
 
     velocity = direction * move_speed
     move_and_slide()
@@ -46,6 +61,11 @@ func set_gameplay_input_blocked(blocked: bool) -> void:
     gameplay_input_blocked = blocked
     if blocked:
         velocity = Vector2.ZERO
+        auto_move_agent.cancel(&"modal")
+
+
+func set_path_grid(grid: WorldPathGrid) -> void:
+    auto_move_agent.bind(self, grid)
 
 
 func aim_direction() -> Vector2:
@@ -69,16 +89,16 @@ func _configure_visuals() -> void:
         sprite.hframes = 4
         sprite.vframes = 7
         sprite.scale = Vector2(2, 2)
-        sprite.position = Vector2(0, -12)
+        sprite.position = Vector2(0, -16)
         shadow.scale = Vector2(2, 2)
-        shadow.position = Vector2(0, 5)
+        shadow.position = Vector2(0, -2)
     else:
         sprite.hframes = 1
         sprite.vframes = 1
         sprite.scale = Vector2.ONE
-        sprite.position = Vector2(0, -10)
+        sprite.position = Vector2(0, -22)
         shadow.scale = Vector2.ONE
-        shadow.position = Vector2(0, 16)
+        shadow.position = Vector2(0, -2)
 
 
 func _apply_visual_state(moving: bool, delta: float) -> void:
