@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player_controller.gd" id="1_controller"]
 [ext_resource type="Texture2D" path="res://assets/original/player/player.svg" id="2_player"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/player/item_user.gd" id="5_item_user"]
 [ext_resource type="Script" path="res://scripts/player/player_stats.gd" id="6_stats"]
 [ext_resource type="Script" path="res://scripts/player/camera_rig.gd" id="7_camera"]
+[ext_resource type="Script" path="res://scripts/player/auto_move_agent.gd" id="8_auto_move"]
 
 [sub_resource type="RectangleShape2D" id="Shape_player"]
 size = Vector2(16, 12)
@@ -19,16 +20,16 @@ script = ExtResource("1_controller")
 
 [node name="Shadow" type="Sprite2D" parent="."]
 texture = ExtResource("3_shadow")
-position = Vector2(0, 16)
+position = Vector2(0, -2)
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = ExtResource("2_player")
-position = Vector2(0, -10)
+position = Vector2(0, -22)
 hframes = 4
 vframes = 7
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(0, 11)
+position = Vector2(0, -6)
 shape = SubResource("Shape_player")
 
 [node name="PlayerStats" type="Node" parent="."]
@@ -40,6 +41,9 @@ script = ExtResource("4_inventory")
 [node name="ItemUser" type="Node" parent="."]
 script = ExtResource("5_item_user")
 inventory_path = NodePath("../Inventory")
+
+[node name="AutoMoveAgent" type="Node" parent="."]
+script = ExtResource("8_auto_move")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 script = ExtResource("7_camera")
