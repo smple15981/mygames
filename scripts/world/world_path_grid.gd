@@ -109,7 +109,9 @@ func _candidate_cells(target_rect: Rect2, interaction_range: float) -> Array[Vec
     if config == null:
         return candidates
 
-    var search_rect := target_rect.grow(interaction_range)
+    var half_cell_diagonal := Vector2(config.display_cell_size).length() * 0.5
+    var search_distance := interaction_range + half_cell_diagonal
+    var search_rect := target_rect.grow(search_distance)
     var minimum := world_to_cell(search_rect.position)
     var maximum := world_to_cell(search_rect.end - RECT_EPSILON)
     minimum.x = clampi(minimum.x, 0, config.map_size_cells.x - 1)
@@ -121,11 +123,13 @@ func _candidate_cells(target_rect: Rect2, interaction_range: float) -> Array[Vec
         for x in range(minimum.x, maximum.x + 1):
             var cell := Vector2i(x, y)
             var center := cell_to_world(cell)
+            if target_rect.has_point(center):
+                continue
             var closest := Vector2(
                 clampf(center.x, target_rect.position.x, target_rect.end.x),
                 clampf(center.y, target_rect.position.y, target_rect.end.y)
             )
-            if center.distance_to(closest) <= interaction_range:
+            if center.distance_to(closest) <= search_distance:
                 candidates.append(cell)
     return candidates
 
