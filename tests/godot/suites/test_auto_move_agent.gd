@@ -4,9 +4,9 @@ extends RefCounted
 static func run() -> Array[String]:
     var failures: Array[String] = []
     var agent := AutoMoveAgent.new()
-    var arrivals := 0
+    var arrivals := [0]
     var cancellations: Array[StringName] = []
-    agent.arrived.connect(func(): arrivals += 1)
+    agent.arrived.connect(func(): arrivals[0] += 1)
     agent.cancelled.connect(func(reason: StringName): cancellations.append(reason))
 
     agent.set_path_for_test(
@@ -29,7 +29,7 @@ static func run() -> Array[String]:
         Vector2.ZERO,
         "agent stops on arrival"
     ))
-    failures.append(TestAssert.equal(arrivals, 1, "arrival emitted once"))
+    failures.append(TestAssert.equal(arrivals[0], 1, "arrival emitted once"))
     failures.append(TestAssert.truthy(not agent.is_active(), "arrival clears path"))
 
     agent.set_path_for_test(
