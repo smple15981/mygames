@@ -111,6 +111,13 @@ static func run() -> Array[String]:
     controller.feedback_requested.connect(func(message: String): feedback.append(message))
 
     failures.append(TestAssert.truthy(
+        not controller.handle_target_click(pickup, true),
+        "automatic pickup click has no command"
+    ))
+    failures.append(TestAssert.equal(requested.size(), 0, "pickup click emits no target"))
+    failures.append(TestAssert.equal(feedback.size(), 0, "pickup click emits no feedback"))
+
+    failures.append(TestAssert.truthy(
         controller.handle_target_click(rock, true),
         "valid target click accepted"
     ))
