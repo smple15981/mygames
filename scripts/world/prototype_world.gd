@@ -2,6 +2,15 @@ class_name PrototypeWorld
 extends Node2D
 
 const VisualCritterScript := preload("res://scripts/world/visual_critter.gd")
+const STARTER_BRANCH_CELLS: Array[Vector2i] = [
+    Vector2i(14, 45), Vector2i(15, 45), Vector2i(16, 45), Vector2i(17, 45),
+    Vector2i(14, 46), Vector2i(15, 46), Vector2i(16, 46), Vector2i(17, 46),
+]
+const STARTER_STONE_CELLS: Array[Vector2i] = [
+    Vector2i(19, 44), Vector2i(20, 44), Vector2i(21, 44),
+    Vector2i(19, 45), Vector2i(20, 45), Vector2i(21, 45),
+    Vector2i(20, 46),
+]
 
 @onready var world_layout: WorldLayout = $WorldLayout
 @onready var collision_registry: WorldCollisionRegistry = $WorldCollisionRegistry
@@ -17,6 +26,8 @@ const VisualCritterScript := preload("res://scripts/world/visual_critter.gd")
 @onready var hint_panel: Control = $HUD/HintPanel
 @onready var hint_timer: Timer = $HintTimer
 
+var _starters_spawned := false
+
 
 func _ready() -> void:
     world_layout.build()
@@ -26,6 +37,7 @@ func _ready() -> void:
     _bind_player_ui()
     _bind_global_input()
     _bind_hint_timer()
+    _spawn_starter_pickups()
     _spawn_critter()
 
     var route_errors := world_layout.validate_required_routes()
@@ -78,6 +90,35 @@ func _on_inventory_opened(opened: bool) -> void:
 
 func _on_hint_timeout() -> void:
     hint_panel.hide()
+
+
+func _spawn_starter_pickups() -> void:
+    if _starters_spawned:
+        return
+    _starters_spawned = true
+    var player_inventory := player.get_node("Inventory") as InventoryModel
+    for cell in STARTER_BRANCH_CELLS:
+        var pickup := WorldPickupFactory.spawn(
+            entities,
+            &"branch",
+            1,
+            world_layout.config.cell_to_world(cell),
+            player,
+            player_inventory
+        )
+        if pickup != null:
+            pickup.add_to_group("starter_pickups")
+    for cell in STARTER_STONE_CELLS:
+        var pickup := WorldPickupFactory.spawn(
+            entities,
+            &"loose_stone",
+            1,
+            world_layout.config.cell_to_world(cell),
+            player,
+            player_inventory
+        )
+        if pickup != null:
+            pickup.add_to_group("starter_pickups")
 
 
 func _spawn_critter() -> void:
