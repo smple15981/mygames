@@ -32,7 +32,7 @@ static func run() -> Array[String]:
         ))
 
     var registry := world.get_node_or_null("WorldCollisionRegistry") as WorldCollisionRegistry
-    var player := world.get_node_or_null("Entities/Player") as CharacterBody2D
+    var player := world.get_node_or_null("Entities/Player") as PlayerController
     failures.append(TestAssert.truthy(registry != null, "collision registry exists"))
     failures.append(TestAssert.truthy(player != null, "player exists"))
     if registry != null and player != null:
@@ -61,6 +61,54 @@ static func run() -> Array[String]:
         failures.append(TestAssert.truthy(
             layout.boundary_cells().size() >= 150,
             "natural boundary count"
+        ))
+
+    var path_grid := world.get_node_or_null("WorldPathGrid")
+    var manager := world.get_node_or_null("WorldInteractionManager")
+    var cursor := world.get_node_or_null("CursorStateManager")
+    var feedback := world.get_node_or_null("HUD/ActionFeedback")
+    failures.append(TestAssert.truthy(path_grid != null, "world path grid exists"))
+    failures.append(TestAssert.truthy(manager != null, "world interaction manager exists"))
+    failures.append(TestAssert.truthy(cursor != null, "cursor state manager exists"))
+    failures.append(TestAssert.truthy(feedback != null, "action feedback exists"))
+
+    if player != null and path_grid != null and cursor != null:
+        var mouse := player.get_node("MouseInteractionController") as MouseInteractionController
+        failures.append(TestAssert.equal(mouse.player, player, "mouse controller player binding"))
+        failures.append(TestAssert.equal(mouse.path_grid, path_grid, "mouse controller path binding"))
+        failures.append(TestAssert.equal(mouse.cursor_manager, cursor, "mouse controller cursor binding"))
+        failures.append(TestAssert.equal(
+            player.auto_move_agent.path_grid,
+            path_grid,
+            "auto move path binding"
+        ))
+
+    if manager != null and player != null and path_grid != null:
+        failures.append(TestAssert.equal(manager.get("player"), player, "manager player binding"))
+        failures.append(TestAssert.equal(manager.get("path_grid"), path_grid, "manager path binding"))
+
+    if feedback != null:
+        feedback.call("show_message", "需要石斧")
+        failures.append(TestAssert.equal(feedback.get("text"), "需要石斧", "feedback message"))
+        failures.append(TestAssert.truthy(feedback.get("visible"), "feedback visible"))
+
+    failures.append(TestAssert.equal(
+        scene_tree.get_nodes_in_group("starter_pickups").size(),
+        15,
+        "starter materials remain available"
+    ))
+
+    if player != null:
+        var action_requests := [0]
+        player.item_user.action_requested.connect(func(_request: ActionRequest): action_requests[0] += 1)
+        var left_click := InputEventMouseButton.new()
+        left_click.button_index = MOUSE_BUTTON_LEFT
+        left_click.pressed = true
+        player._unhandled_input(left_click)
+        failures.append(TestAssert.equal(
+            action_requests[0],
+            0,
+            "world left click does not also use selected item"
         ))
 
     world.free()
