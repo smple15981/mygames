@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player_controller.gd" id="1_controller"]
 [ext_resource type="Texture2D" path="res://assets/original/player/player.svg" id="2_player"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://scripts/player/player_stats.gd" id="6_stats"]
 [ext_resource type="Script" path="res://scripts/player/camera_rig.gd" id="7_camera"]
 [ext_resource type="Script" path="res://scripts/player/auto_move_agent.gd" id="8_auto_move"]
+[ext_resource type="Script" path="res://scripts/player/mouse_interaction_controller.gd" id="9_mouse_interaction"]
 
 [sub_resource type="RectangleShape2D" id="Shape_player"]
 size = Vector2(16, 12)
@@ -44,6 +45,9 @@ inventory_path = NodePath("../Inventory")
 
 [node name="AutoMoveAgent" type="Node" parent="."]
 script = ExtResource("8_auto_move")
+
+[node name="MouseInteractionController" type="Node" parent="."]
+script = ExtResource("9_mouse_interaction")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 script = ExtResource("7_camera")
