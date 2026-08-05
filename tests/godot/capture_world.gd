@@ -61,16 +61,25 @@ func _stage_mouse_interaction_view(world: PrototypeWorld) -> void:
     world.inventory_ui.close()
     world.camera_rig.set_zoom_value(CameraRig.MIN_ZOOM)
 
-    var pair := _closest_resource_pair(world)
+    var inventory := world.player.get_node("Inventory") as InventoryModel
+    inventory.add_item(&"stone_axe", 1)
+    inventory.add_item(&"stone_pickaxe", 1)
+    inventory.set_selected_slot(0)
+
+    world.player.global_position = world.world_layout.spawn_position()
+    world.player.velocity = Vector2.ZERO
+
+    var pair := _featured_resource_pair(world)
     if pair.size() == 2:
         var tree_root := pair[0].get_parent() as Node2D
         var rock_root := pair[1].get_parent() as Node2D
-        var requested := (tree_root.global_position + rock_root.global_position) * 0.5
-        world.player.global_position = world.world_layout.recover_player_position(
-            requested,
-            Vector2(16, 12)
-        )
-        world.player.velocity = Vector2.ZERO
+        tree_root.global_position = world.player.global_position + Vector2(-132, 18)
+        rock_root.global_position = world.player.global_position + Vector2(132, 26)
+
+        var tree_target := tree_root.get_node_or_null("InteractionTarget") as InteractionTarget
+        if tree_target != null:
+            tree_target.set_highlighted(true)
+            world.cursor_manager.set_state(CursorStateManager.State.HARVEST_AXE)
 
     var starter_pickups := world.get_tree().get_nodes_in_group("starter_pickups")
     for index in starter_pickups.size():
@@ -84,10 +93,26 @@ func _stage_mouse_interaction_view(world: PrototypeWorld) -> void:
     world.action_feedback.show_message("左键点击资源：自动靠近并持续采集")
 
 
-func _closest_resource_pair(world: PrototypeWorld) -> Array[HarvestableResource]:
-    var trees: Array[HarvestableResource] = []
-    var rocks: Array[HarvestableResource] = []
-    for node in world.get_tree().get_nodes_in_group("harvestables"):
+func _featured_resource_pair(world: PrototypeWorld) -> Array[HarvestableResource]:
+    var starter_pair := _resource_pair_from_nodes(
+        world,
+        world.get_tree().get_nodes_in_group("starter_harvestables")
+    )
+    if starter_pair.size() == 2:
+        return starter_pair
+    return _resource_pair_from_nodes(
+        world,
+        world.get_tree().get_nodes_in_group("harvestables")
+    )
+
+
+func _resource_pair_from_nodes(
+    world: PrototypeWorld,
+    nodes: Array[Node]
+) -> Array[HarvestableResource]:
+    var tree: HarvestableResource
+    var rock: HarvestableResource
+    for node in nodes:
         var resource := node as HarvestableResource
         if (
             resource == null
@@ -98,19 +123,10 @@ func _closest_resource_pair(world: PrototypeWorld) -> Array[HarvestableResource]
         var target := resource.get_parent().get_node_or_null("InteractionTarget") as InteractionTarget
         if target == null:
             continue
-        if target.kind == InteractionTarget.Kind.HARVEST_TREE:
-            trees.append(resource)
-        elif target.kind == InteractionTarget.Kind.HARVEST_ROCK:
-            rocks.append(resource)
-
-    var best: Array[HarvestableResource] = []
-    var best_distance := INF
-    for tree in trees:
-        var tree_root := tree.get_parent() as Node2D
-        for rock in rocks:
-            var rock_root := rock.get_parent() as Node2D
-            var distance := tree_root.global_position.distance_to(rock_root.global_position)
-            if distance < best_distance:
-                best_distance = distance
-                best = [tree, rock]
-    return best
+        if target.kind == InteractionTarget.Kind.HARVEST_TREE and tree == null:
+            tree = resource
+        elif target.kind == InteractionTarget.Kind.HARVEST_ROCK and rock == null:
+            rock = resource
+        if tree != null and rock != null:
+            return [tree, rock]
+    return []
