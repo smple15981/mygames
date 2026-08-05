@@ -27,7 +27,9 @@ static func run() -> Array[String]:
     failures.append(TestAssert.equal(inventory.count_item(&"stone_axe"), 1, "axe enters inventory"))
     failures.append(TestAssert.equal(inventory.count_item(&"stone_pickaxe"), 1, "pickaxe enters inventory"))
 
-    var tree_resource := world.find_first_harvestable(InteractionTarget.Kind.HARVEST_TREE)
+    var tree_resource: HarvestableResource = world.find_first_harvestable(
+        InteractionTarget.Kind.HARVEST_TREE
+    )
     failures.append(TestAssert.truthy(tree_resource != null, "find harvestable tree"))
     if tree_resource != null:
         failures.append(TestAssert.truthy(
@@ -39,7 +41,9 @@ static func run() -> Array[String]:
             "tree yields wood through pickup"
         ))
 
-    var rock_resource := world.find_first_harvestable(InteractionTarget.Kind.HARVEST_ROCK)
+    var rock_resource: HarvestableResource = world.find_first_harvestable(
+        InteractionTarget.Kind.HARVEST_ROCK
+    )
     failures.append(TestAssert.truthy(rock_resource != null, "find harvestable rock"))
     if rock_resource != null:
         failures.append(TestAssert.truthy(
@@ -51,6 +55,7 @@ static func run() -> Array[String]:
             "rock yields stone through pickup"
         ))
 
+    await scene_tree.process_frame
     failures.append(TestAssert.equal(
         world.get_tree().get_nodes_in_group("resource_drops").size(),
         0,

@@ -118,6 +118,7 @@ static func spawn_atlas_prop(
     ]:
         var harvestable := HarvestableResource.new()
         harvestable.name = "HarvestableResource"
+        harvestable.add_to_group("harvestables")
         root.add_child(harvestable)
         harvestable.configure(
             definition.required_tool,

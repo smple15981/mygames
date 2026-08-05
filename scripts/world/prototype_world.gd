@@ -159,6 +159,74 @@ func _on_pickup_blocked(_item_id: StringName) -> void:
     action_feedback.show_message("背包已满")
 
 
+func find_first_harvestable(kind: int) -> HarvestableResource:
+    for node in get_tree().get_nodes_in_group("harvestables"):
+        var resource := node as HarvestableResource
+        if (
+            resource == null
+            or resource.is_depleted()
+            or not entities.is_ancestor_of(resource)
+        ):
+            continue
+        var root := resource.get_parent()
+        var target := root.get_node_or_null("InteractionTarget") as InteractionTarget
+        if target != null and target.kind == kind:
+            return resource
+    return null
+
+
+func force_harvest_for_test(resource: HarvestableResource) -> bool:
+    if resource == null or resource.is_depleted():
+        return false
+    var root := resource.get_parent()
+    var target := root.get_node_or_null("InteractionTarget") as InteractionTarget
+    if target == null:
+        return false
+
+    var player_inventory := player.get_node("Inventory") as InventoryModel
+    if not _select_tool_for_test(player_inventory, target.required_tool):
+        return false
+
+    var path := world_path_grid.find_path(
+        player.global_position,
+        target.world_target_rect(),
+        target.interaction_range
+    )
+    if path.is_empty():
+        return false
+    player.global_position = path[path.size() - 1]
+    player.velocity = Vector2.ZERO
+
+    if not interaction_manager.begin_interaction(target):
+        return false
+    if not interaction_manager.complete_current_harvest_for_test():
+        return false
+
+    var transferred := false
+    for node in get_tree().get_nodes_in_group("resource_drops"):
+        var pickup := node as WorldPickup
+        if pickup == null or not entities.is_ancestor_of(pickup):
+            continue
+        if pickup.try_transfer() == 0:
+            transferred = true
+    return transferred
+
+
+func _select_tool_for_test(
+    player_inventory: InventoryModel,
+    tool: ItemDefinition.ToolType
+) -> bool:
+    for index in player_inventory.quickbar_size:
+        var stack := player_inventory.slots[index]
+        if stack.is_empty():
+            continue
+        var definition := ItemCatalog.get_item(stack.item_id)
+        if definition != null and definition.tool_type == tool:
+            player_inventory.set_selected_slot(index)
+            return true
+    return false
+
+
 func _spawn_critter() -> void:
     var using_open_sheet := OpenAssetLibrary.texture_exists(OpenAssetLibrary.PIG_SHEET)
     var texture := OpenAssetLibrary.load_texture(

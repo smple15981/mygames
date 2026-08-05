@@ -54,20 +54,19 @@ func _process(delta: float) -> void:
         cancel(&"out_of_range")
         return
 
-    var item := _selected_item_definition()
-    if item == null or not _current_resource.can_harvest(item.tool_type):
-        _show_feedback(_required_tool_message(_current_target.required_tool))
-        cancel(&"tool_changed")
-        return
-
     _cooldown_remaining = maxf(0.0, _cooldown_remaining - delta)
     if _cooldown_remaining > 0.0:
         return
 
-    if not _current_resource.apply_hit(item.tool_type, 1):
-        cancel(&"harvest_rejected")
+    if not _perform_harvest_hit():
+        if _harvesting:
+            cancel(&"harvest_rejected")
         return
-    _cooldown_remaining = maxf(0.05, item.use_cooldown)
+
+    if _harvesting:
+        var item := _selected_item_definition()
+        if item != null:
+            _cooldown_remaining = maxf(0.05, item.use_cooldown)
 
 
 func begin_interaction(target: InteractionTarget) -> bool:
@@ -105,6 +104,24 @@ func begin_interaction(target: InteractionTarget) -> bool:
         cancel(&"unreachable")
         return false
     return true
+
+
+func complete_current_harvest_for_test() -> bool:
+    if not _harvesting or not _has_valid_target():
+        return false
+
+    var safety := 0
+    while _harvesting and _has_valid_target() and safety < 100:
+        if not _perform_harvest_hit():
+            return false
+        safety += 1
+
+    return (
+        safety > 0
+        and not _harvesting
+        and _current_resource == null
+        and _current_target == null
+    )
 
 
 func cancel(reason: StringName = &"cancelled") -> void:
@@ -161,6 +178,17 @@ func _start_harvesting() -> void:
             _current_target.world_target_rect().get_center()
         )
         player.facing = MovementMath.facing_index(direction, player.facing)
+
+
+func _perform_harvest_hit() -> bool:
+    if not _has_valid_target():
+        return false
+    var item := _selected_item_definition()
+    if item == null or not _current_resource.can_harvest(item.tool_type):
+        _show_feedback(_required_tool_message(_current_target.required_tool))
+        cancel(&"tool_changed")
+        return false
+    return _current_resource.apply_hit(item.tool_type, 1)
 
 
 func _is_in_interaction_range(target: InteractionTarget) -> bool:
