@@ -26,10 +26,23 @@ static func run() -> Array[String]:
     for index in InventoryModel.CAPACITY:
         full_inventory.slots[index].item_id = &"stone_axe"
         full_inventory.slots[index].quantity = 1
+    var pickup_player := Node2D.new()
+    pickup_player.position = Vector2.ZERO
     var blocked := WorldPickup.new()
-    blocked.configure(&"wood", 2, null, full_inventory)
+    blocked.position = Vector2(20, 0)
+    blocked.pickup_delay = 0.0
+    blocked.configure(&"wood", 2, pickup_player, full_inventory)
     failures.append(TestAssert.equal(blocked.try_transfer(), 2, "full inventory retains pickup"))
     failures.append(TestAssert.equal(blocked.quantity, 2, "blocked pickup quantity unchanged"))
+    failures.append(TestAssert.truthy(
+        full_inventory.remove_item(&"stone_axe", 1),
+        "free one inventory slot"
+    ))
+    blocked._physics_process(0.1)
+    failures.append(TestAssert.truthy(
+        blocked.position.x < 20.0,
+        "pickup resumes attraction after inventory space opens"
+    ))
 
     var parent := Node2D.new()
     var spawned := WorldPickupFactory.spawn(
@@ -47,6 +60,18 @@ static func run() -> Array[String]:
         var area := spawned.get_node("PickupArea") as Area2D
         failures.append(TestAssert.equal(area.collision_layer, 8, "pickup layer"))
         failures.append(TestAssert.equal(area.collision_mask, 0, "pickup mask"))
+        failures.append(TestAssert.truthy(
+            spawned.has_node("InteractionTarget"),
+            "pickup exposes mouse interaction target"
+        ))
+        var target := spawned.get_node("InteractionTarget") as InteractionTarget
+        failures.append(TestAssert.equal(
+            target.kind,
+            InteractionTarget.Kind.PICKUP,
+            "pickup interaction kind"
+        ))
+        failures.append(TestAssert.equal(target.collision_layer, 4, "pickup interaction layer"))
+        failures.append(TestAssert.equal(target.collision_mask, 0, "pickup interaction mask"))
 
     var world_scene := load("res://scenes/world/prototype_world.tscn") as PackedScene
     var root := (Engine.get_main_loop() as SceneTree).root
@@ -64,6 +89,7 @@ static func run() -> Array[String]:
     pickup.free()
     partial.free()
     blocked.free()
+    pickup_player.free()
     parent.free()
     inventory.free()
     partial_inventory.free()
