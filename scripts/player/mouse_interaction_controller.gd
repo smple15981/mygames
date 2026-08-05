@@ -90,6 +90,10 @@ func handle_target_click(target: InteractionTarget, reachable: bool) -> bool:
     if cursor_manager != null:
         cursor_manager.set_state(state)
 
+    # Pickups are collected automatically by proximity. Clicking one only keeps
+    # the pickup cursor visible and must not create a harvesting command.
+    if target.kind == InteractionTarget.Kind.PICKUP:
+        return false
     if state == CursorStateManager.State.TOOL_LOCKED:
         feedback_requested.emit(_required_tool_message(target.required_tool))
         return false
