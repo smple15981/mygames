@@ -112,6 +112,22 @@ static func spawn_atlas_prop(
                     return null
                 registered_ids.append(footprint_id)
 
+    if definition.interaction_kind in [
+        InteractionTarget.Kind.HARVEST_TREE,
+        InteractionTarget.Kind.HARVEST_ROCK,
+    ]:
+        var harvestable := HarvestableResource.new()
+        harvestable.name = "HarvestableResource"
+        root.add_child(harvestable)
+        harvestable.configure(
+            definition.required_tool,
+            definition.harvest_hits,
+            definition.drop_item_id,
+            definition.drop_quantity,
+            registry,
+            registered_ids
+        )
+
     root.set_meta("footprint_ids", registered_ids)
     parent.add_child(root)
     return root
