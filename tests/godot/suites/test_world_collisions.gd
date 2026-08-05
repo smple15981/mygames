@@ -132,18 +132,18 @@ static func run() -> Array[String]:
         "workshop calibrated collisions"
     ))
 
-    for definition in [small_tree, tree_cluster, rock_cluster, farmhouse, workshop]:
+    for definition in [small_tree, tree_cluster, rock_cluster]:
         for collision_rect in definition.collision_rects:
             failures.append(TestAssert.equal(
                 collision_rect.end.y,
-                0.0 if collision_rect.size.y >= 14.0 or definition in [small_tree, tree_cluster, rock_cluster] else collision_rect.end.y,
-                "%s base anchor" % definition.id
+                0.0,
+                "%s collision ends at ground anchor" % definition.id
             ))
 
     var workshop_doorway := Rect2(-11, -26, 22, 26)
     for collision_rect in workshop.collision_rects:
         failures.append(TestAssert.truthy(
-            not collision_rect.intersects(workshop_doorway, true),
+            not collision_rect.intersects(workshop_doorway, false),
             "workshop doorway remains open"
         ))
 

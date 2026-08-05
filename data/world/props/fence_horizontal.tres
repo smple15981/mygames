@@ -9,5 +9,5 @@ display_name = "横向围栏"
 visual_scale = 2.0
 visual_offset = Vector2(0, -16)
 solid = true
-collision_rects = Array[Rect2]([Rect2(-56, -8, 112, 12)])
+collision_rects = Array[Rect2]([Rect2(-56, -6, 112, 8)])
 marker_category = 0

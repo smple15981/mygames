@@ -9,5 +9,5 @@ display_name = "工坊"
 visual_scale = 2.0
 visual_offset = Vector2(0, -76)
 solid = true
-collision_rects = Array[Rect2]([Rect2(-44, -36, 32, 36), Rect2(12, -36, 32, 36), Rect2(-44, -36, 88, 10)])
+collision_rects = Array[Rect2]([Rect2(-44, -36, 33, 36), Rect2(11, -36, 33, 36), Rect2(-44, -36, 88, 10)])
 marker_category = 2
