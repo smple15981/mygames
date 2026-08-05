@@ -12,6 +12,7 @@ const SUITES := [
     preload("res://tests/godot/suites/test_world_collisions.gd"),
     preload("res://tests/godot/suites/test_world_path_grid.gd"),
     preload("res://tests/godot/suites/test_interaction_target.gd"),
+    preload("res://tests/godot/suites/test_harvestable_resource.gd"),
     preload("res://tests/godot/suites/test_world_integration.gd"),
     preload("res://tests/godot/suites/test_minimap.gd"),
 ]
