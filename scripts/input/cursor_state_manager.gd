@@ -40,6 +40,10 @@ func _ready() -> void:
     _apply_state()
 
 
+func _exit_tree() -> void:
+    release_cursor()
+
+
 func set_state(state: int) -> void:
     _current_state = state if RESOURCE_PATHS.has(state) else State.DEFAULT
     if is_inside_tree():
@@ -48,6 +52,12 @@ func set_state(state: int) -> void:
 
 func reset() -> void:
     set_state(State.DEFAULT)
+
+
+func release_cursor() -> void:
+    Input.set_custom_mouse_cursor(null, Input.CURSOR_ARROW)
+    _textures.clear()
+    _applied_state = -1
 
 
 func current_state() -> int:
