@@ -15,7 +15,8 @@ static func run() -> Array[String]:
     var grid := WorldPathGrid.new()
     grid.configure(config, registry)
     var target_rect := Rect2(224, 64, 24, 24)
-    var path := grid.find_path(Vector2(80, 80), target_rect, 36.0)
+    var interaction_range := 36.0
+    var path := grid.find_path(Vector2(80, 80), target_rect, interaction_range)
 
     failures.append(TestAssert.truthy(path.size() > 2, "path exists around blocker"))
     if not path.is_empty():
@@ -24,21 +25,29 @@ static func run() -> Array[String]:
             not target_rect.has_point(endpoint),
             "path endpoint stays outside target"
         ))
+        var closest := Vector2(
+            clampf(endpoint.x, target_rect.position.x, target_rect.end.x),
+            clampf(endpoint.y, target_rect.position.y, target_rect.end.y)
+        )
+        var maximum_distance := (
+            interaction_range
+            + Vector2(config.display_cell_size).length() * 0.5
+        )
         failures.append(TestAssert.truthy(
-            endpoint.distance_to(target_rect.get_center()) <= 68.0,
+            endpoint.distance_to(closest) <= maximum_distance + 0.01,
             "path ends in interaction range"
         ))
 
     registry.register_rect(&"sealed", Rect2(192, 32, 96, 128))
     failures.append(TestAssert.equal(
-        grid.find_path(Vector2(80, 80), target_rect, 36.0).size(),
+        grid.find_path(Vector2(80, 80), target_rect, interaction_range).size(),
         0,
         "sealed target unreachable"
     ))
 
     registry.unregister(&"sealed")
     failures.append(TestAssert.truthy(
-        grid.find_path(Vector2(80, 80), target_rect, 36.0).size() > 0,
+        grid.find_path(Vector2(80, 80), target_rect, interaction_range).size() > 0,
         "unregister reopens path"
     ))
 
