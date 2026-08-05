@@ -11,6 +11,20 @@ const STARTER_STONE_CELLS: Array[Vector2i] = [
     Vector2i(19, 45), Vector2i(20, 45), Vector2i(21, 45),
     Vector2i(20, 46),
 ]
+const STARTER_TREE_CELLS: Array[Vector2i] = [
+    Vector2i(10, 45),
+    Vector2i(11, 48),
+    Vector2i(22, 48),
+]
+const STARTER_ROCK_CELLS: Array[Vector2i] = [
+    Vector2i(23, 45),
+    Vector2i(23, 48),
+    Vector2i(20, 49),
+]
+const TREE_SMALL_DEFINITION_PATH := "res://data/world/props/tree_small.tres"
+const ROCK_CLUSTER_DEFINITION_PATH := "res://data/world/props/rock_cluster.tres"
+const TREE_FALLBACK_PATH := "res://assets/original/world/tree.svg"
+const ROCK_FALLBACK_PATH := "res://assets/original/world/rock.svg"
 
 @onready var world_layout: WorldLayout = $WorldLayout
 @onready var collision_registry: WorldCollisionRegistry = $WorldCollisionRegistry
@@ -32,10 +46,12 @@ const STARTER_STONE_CELLS: Array[Vector2i] = [
 @onready var hint_timer: Timer = $HintTimer
 
 var _starters_spawned := false
+var _starter_harvestables_spawned := false
 
 
 func _ready() -> void:
     world_layout.build()
+    _spawn_starter_harvestables()
     world_path_grid.configure(world_layout.config, collision_registry)
     player.position = world_layout.spawn_position()
     player.position = world_layout.recover_player_position(player.position, Vector2(16, 12))
@@ -118,6 +134,82 @@ func _on_inventory_opened(opened: bool) -> void:
 
 func _on_hint_timeout() -> void:
     hint_panel.hide()
+
+
+func _spawn_starter_harvestables() -> void:
+    if _starter_harvestables_spawned:
+        return
+    _starter_harvestables_spawned = true
+
+    var tree_definition := load(TREE_SMALL_DEFINITION_PATH) as WorldPropDefinition
+    var rock_definition := load(ROCK_CLUSTER_DEFINITION_PATH) as WorldPropDefinition
+    if tree_definition == null or rock_definition == null:
+        push_error("Unable to load starter harvestable definitions")
+        return
+
+    var village_texture := OpenAssetLibrary.load_texture(OpenAssetLibrary.VILLAGE_ATLAS)
+    if village_texture != null:
+        _spawn_starter_resource_set(
+            STARTER_TREE_CELLS,
+            &"starter_tree",
+            tree_definition,
+            village_texture,
+            OpenAtlasRegions.TREE_SMALL
+        )
+        _spawn_starter_resource_set(
+            STARTER_ROCK_CELLS,
+            &"starter_rock",
+            rock_definition,
+            village_texture,
+            OpenAtlasRegions.ROCK_CLUSTER
+        )
+        return
+
+    var tree_texture := OpenAssetLibrary.load_texture(TREE_FALLBACK_PATH)
+    var rock_texture := OpenAssetLibrary.load_texture(ROCK_FALLBACK_PATH)
+    if tree_texture != null:
+        _spawn_starter_resource_set(
+            STARTER_TREE_CELLS,
+            &"starter_tree",
+            tree_definition,
+            tree_texture,
+            Rect2i(Vector2i.ZERO, Vector2i(tree_texture.get_size()))
+        )
+    if rock_texture != null:
+        _spawn_starter_resource_set(
+            STARTER_ROCK_CELLS,
+            &"starter_rock",
+            rock_definition,
+            rock_texture,
+            Rect2i(Vector2i.ZERO, Vector2i(rock_texture.get_size()))
+        )
+
+
+func _spawn_starter_resource_set(
+    cells: Array[Vector2i],
+    id_prefix: StringName,
+    definition: WorldPropDefinition,
+    texture: Texture2D,
+    region: Rect2i
+) -> void:
+    for index in cells.size():
+        var instance_id := StringName("%s_%03d" % [id_prefix, index])
+        var root := WorldPropFactory.spawn_atlas_prop(
+            entities,
+            texture,
+            region,
+            definition,
+            instance_id,
+            world_layout.config.cell_to_world(cells[index]),
+            collision_registry
+        )
+        if root == null:
+            push_warning("Unable to spawn starter harvestable: %s" % instance_id)
+            continue
+        root.set_meta("world_generated", true)
+        var harvestable := root.get_node_or_null("HarvestableResource") as HarvestableResource
+        if harvestable != null:
+            harvestable.add_to_group("starter_harvestables")
 
 
 func _spawn_starter_pickups() -> void:
