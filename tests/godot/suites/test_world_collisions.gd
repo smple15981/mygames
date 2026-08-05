@@ -34,6 +34,30 @@ static func run() -> Array[String]:
         not registry.register_rect(&"tree_001:0", Rect2(0, 0, 5, 5)),
         "duplicate instance rejected"
     ))
+
+    var events: Array[String] = []
+    registry.footprint_registered.connect(
+        func(id: StringName, _rect: Rect2): events.append("add:%s" % id)
+    )
+    registry.footprint_unregistered.connect(
+        func(id: StringName, _rect: Rect2): events.append("remove:%s" % id)
+    )
+    failures.append(TestAssert.truthy(
+        registry.register_rect(&"dynamic_tree:0", Rect2(240, 240, 20, 12)),
+        "dynamic footprint registers"
+    ))
+    failures.append(TestAssert.equal(
+        registry.footprint(&"dynamic_tree:0"),
+        Rect2(240, 240, 20, 12),
+        "footprint query"
+    ))
+    registry.unregister_many([&"dynamic_tree:0"])
+    failures.append(TestAssert.equal(
+        events,
+        ["add:dynamic_tree:0", "remove:dynamic_tree:0"],
+        "registry events"
+    ))
+
     failures.append(TestAssert.truthy(
         not registry.is_position_safe(Vector2(100, 100), Vector2(16, 12)),
         "overlap unsafe"
