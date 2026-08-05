@@ -10,7 +10,14 @@ const SUITES := [
     preload("res://tests/godot/suites/test_camera_rig.gd"),
     preload("res://tests/godot/suites/test_game_input_router.gd"),
     preload("res://tests/godot/suites/test_world_collisions.gd"),
+    preload("res://tests/godot/suites/test_world_path_grid.gd"),
+    preload("res://tests/godot/suites/test_interaction_target.gd"),
+    preload("res://tests/godot/suites/test_harvestable_resource.gd"),
+    preload("res://tests/godot/suites/test_world_pickup.gd"),
+    preload("res://tests/godot/suites/test_auto_move_agent.gd"),
+    preload("res://tests/godot/suites/test_mouse_interaction.gd"),
     preload("res://tests/godot/suites/test_world_integration.gd"),
+    preload("res://tests/godot/suites/test_playable_loop.gd"),
     preload("res://tests/godot/suites/test_minimap.gd"),
 ]
 
@@ -24,7 +31,7 @@ func _run_tests() -> void:
     var failures: Array[String] = []
     for index in SUITES.size():
         print("HEARTHWILD_SUITE_START:%d" % index)
-        failures.append_array(SUITES[index].run())
+        failures.append_array(await SUITES[index].run())
         print("HEARTHWILD_SUITE_DONE:%d" % index)
     for failure in failures:
         push_error(failure)

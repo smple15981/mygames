@@ -1,6 +1,8 @@
 class_name WorldPropFactory
 extends RefCounted
 
+const OUTLINE_SHADER: Shader = preload("res://assets/original/ui/interaction_outline.gdshader")
+
 
 static func spawn_atlas_prop(
     parent: Node2D,
@@ -23,15 +25,62 @@ static func spawn_atlas_prop(
     var root := Node2D.new()
     root.name = String(instance_id)
     root.position = world_position
+    root.z_as_relative = true
+    root.set_meta("interaction_kind", int(definition.interaction_kind))
+    root.set_meta("world_instance_id", instance_id)
 
-    var sprite := Sprite2D.new()
-    sprite.name = "Visual"
-    sprite.texture = texture
-    sprite.region_enabled = true
-    sprite.region_rect = Rect2(region)
-    sprite.scale = Vector2.ONE * definition.visual_scale
-    sprite.position = definition.visual_offset
+    var sprite := _create_atlas_sprite(
+        "Visual",
+        texture,
+        region,
+        definition.visual_scale,
+        definition.visual_offset
+    )
+    sprite.z_index = 0
     root.add_child(sprite)
+
+    if definition.interaction_kind != InteractionTarget.Kind.NONE:
+        var highlight := _create_atlas_sprite(
+            "Highlight",
+            texture,
+            region,
+            definition.visual_scale,
+            definition.visual_offset
+        )
+        highlight.visible = false
+        highlight.z_index = -1
+        var material := ShaderMaterial.new()
+        material.shader = OUTLINE_SHADER
+        var texture_size := Vector2(texture.get_size())
+        if texture_size.x > 0.0 and texture_size.y > 0.0:
+            material.set_shader_parameter(
+                "pixel_size",
+                Vector2(1.0 / texture_size.x, 1.0 / texture_size.y)
+            )
+        highlight.material = material
+        root.add_child(highlight)
+
+        var target := InteractionTarget.new()
+        target.name = "InteractionTarget"
+        target.kind = definition.interaction_kind
+        target.required_tool = definition.required_tool
+        target.interaction_range = definition.interaction_range
+        target.target_rect = definition.interaction_rect
+        target.highlight = highlight
+        target.collision_layer = 4
+        target.collision_mask = 0
+        root.add_child(target)
+
+        var interaction_shape := RectangleShape2D.new()
+        interaction_shape.size = definition.interaction_rect.size
+        var interaction_collision := CollisionShape2D.new()
+        interaction_collision.name = "CollisionShape2D"
+        interaction_collision.position = (
+            definition.interaction_rect.position
+            + definition.interaction_rect.size * 0.5
+        )
+        interaction_collision.shape = interaction_shape
+        target.add_child(interaction_collision)
 
     var registered_ids: Array[StringName] = []
     if definition.solid:
@@ -63,5 +112,40 @@ static func spawn_atlas_prop(
                     return null
                 registered_ids.append(footprint_id)
 
+    if definition.interaction_kind in [
+        InteractionTarget.Kind.HARVEST_TREE,
+        InteractionTarget.Kind.HARVEST_ROCK,
+    ]:
+        var harvestable := HarvestableResource.new()
+        harvestable.name = "HarvestableResource"
+        harvestable.add_to_group("harvestables")
+        root.add_child(harvestable)
+        harvestable.configure(
+            definition.required_tool,
+            definition.harvest_hits,
+            definition.drop_item_id,
+            definition.drop_quantity,
+            registry,
+            registered_ids
+        )
+
+    root.set_meta("footprint_ids", registered_ids)
     parent.add_child(root)
     return root
+
+
+static func _create_atlas_sprite(
+    node_name: String,
+    texture: Texture2D,
+    region: Rect2i,
+    visual_scale: float,
+    visual_offset: Vector2
+) -> Sprite2D:
+    var sprite := Sprite2D.new()
+    sprite.name = node_name
+    sprite.texture = texture
+    sprite.region_enabled = true
+    sprite.region_rect = Rect2(region)
+    sprite.scale = Vector2.ONE * visual_scale
+    sprite.position = visual_offset
+    return sprite

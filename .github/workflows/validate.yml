@@ -25,6 +25,9 @@ jobs:
       - name: Validate pure 2D Godot repository contract
         run: python tools/validate_project.py .
 
+      - name: Validate mouse interaction MVP contract
+        run: python tools/validate_mouse_interaction.py .
+
       - name: Compile Python validation tools
         run: python -m compileall -q tools tests
 

@@ -34,6 +34,30 @@ static func run() -> Array[String]:
         not registry.register_rect(&"tree_001:0", Rect2(0, 0, 5, 5)),
         "duplicate instance rejected"
     ))
+
+    var events: Array[String] = []
+    registry.footprint_registered.connect(
+        func(id: StringName, _rect: Rect2): events.append("add:%s" % id)
+    )
+    registry.footprint_unregistered.connect(
+        func(id: StringName, _rect: Rect2): events.append("remove:%s" % id)
+    )
+    failures.append(TestAssert.truthy(
+        registry.register_rect(&"dynamic_tree:0", Rect2(240, 240, 20, 12)),
+        "dynamic footprint registers"
+    ))
+    failures.append(TestAssert.equal(
+        registry.footprint(&"dynamic_tree:0"),
+        Rect2(240, 240, 20, 12),
+        "footprint query"
+    ))
+    registry.unregister_many([&"dynamic_tree:0"])
+    failures.append(TestAssert.equal(
+        events,
+        ["add:dynamic_tree:0", "remove:dynamic_tree:0"],
+        "registry events"
+    ))
+
     failures.append(TestAssert.truthy(
         not registry.is_position_safe(Vector2(100, 100), Vector2(16, 12)),
         "overlap unsafe"
@@ -56,12 +80,72 @@ static func run() -> Array[String]:
     failures.append(TestAssert.truthy(farmhouse != null, "farmhouse definition loads"))
     if farmhouse != null:
         failures.append(TestAssert.equal(farmhouse.validate().size(), 0, "farmhouse definition valid"))
+        failures.append(TestAssert.equal(
+            farmhouse.collision_rects,
+            [
+                Rect2(-56, -44, 40, 44),
+                Rect2(16, -44, 40, 44),
+                Rect2(-56, -44, 112, 12),
+            ],
+            "farmhouse calibrated collisions"
+        ))
         var doorway := Rect2(-15, -31, 30, 31)
         for collision_rect in farmhouse.collision_rects:
             failures.append(TestAssert.truthy(
                 not collision_rect.intersects(doorway, true),
                 "farmhouse doorway remains open"
             ))
+
+    var small_tree := load("res://data/world/props/tree_small.tres") as WorldPropDefinition
+    var tree_cluster := load("res://data/world/props/tree_cluster.tres") as WorldPropDefinition
+    var rock_cluster := load("res://data/world/props/rock_cluster.tres") as WorldPropDefinition
+    var fence := load("res://data/world/props/fence_horizontal.tres") as WorldPropDefinition
+    var workshop := load("res://data/world/props/workshop.tres") as WorldPropDefinition
+
+    failures.append(TestAssert.equal(
+        small_tree.collision_rects,
+        [Rect2(-10, -12, 20, 12)],
+        "small tree trunk calibration"
+    ))
+    failures.append(TestAssert.equal(
+        tree_cluster.collision_rects,
+        [Rect2(-25, -14, 16, 14), Rect2(9, -14, 16, 14)],
+        "tree cluster trunk calibration"
+    ))
+    failures.append(TestAssert.equal(
+        rock_cluster.collision_rects,
+        [Rect2(-16, -10, 32, 10)],
+        "rock base calibration"
+    ))
+    failures.append(TestAssert.equal(
+        fence.collision_rects,
+        [Rect2(-56, -6, 112, 8)],
+        "fence base calibration"
+    ))
+    failures.append(TestAssert.equal(
+        workshop.collision_rects,
+        [
+            Rect2(-44, -36, 33, 36),
+            Rect2(11, -36, 33, 36),
+            Rect2(-44, -36, 88, 10),
+        ],
+        "workshop calibrated collisions"
+    ))
+
+    for definition in [small_tree, tree_cluster, rock_cluster]:
+        for collision_rect in definition.collision_rects:
+            failures.append(TestAssert.equal(
+                collision_rect.end.y,
+                0.0,
+                "%s collision ends at ground anchor" % definition.id
+            ))
+
+    var workshop_doorway := Rect2(-11, -26, 22, 26)
+    for collision_rect in workshop.collision_rects:
+        failures.append(TestAssert.truthy(
+            not collision_rect.intersects(workshop_doorway, false),
+            "workshop doorway remains open"
+        ))
 
     var parent := Node2D.new()
     var image := Image.create(16, 16, false, Image.FORMAT_RGBA8)
