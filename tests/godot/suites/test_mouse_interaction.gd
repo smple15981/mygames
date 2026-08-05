@@ -137,6 +137,14 @@ static func run() -> Array[String]:
     ))
     failures.append(TestAssert.equal(cursor.current_state(), CursorStateManager.State.DEFAULT, "modal cursor reset"))
 
+    var player_scene := load("res://scenes/player/player.tscn") as PackedScene
+    var player := player_scene.instantiate() as PlayerController
+    failures.append(TestAssert.truthy(
+        player.has_node("MouseInteractionController"),
+        "player has mouse interaction controller"
+    ))
+
+    player.free()
     tree.free()
     rock.free()
     pickup.free()
